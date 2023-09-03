@@ -254,6 +254,36 @@ class Item(Selectable):
         state.dialog = "Those don't do anything together."
         return (state, assets)
 
+class Pickupable(Selectable):
+    def __init__(self, pos, invItem, name="", image=None, examine="", useTxt="I can't use that"):
+        super().__init__(pos, name, image, examine, useTxt)
+        self.invItem = invItem
+
+    def use(self, state, assets):
+        state.dialog = f"You took the {self.name}"
+        state.currInventory.append(self.invItem)
+        state.currRoom.selectables.remove(self)
+        return (state, assets)
+
+class Microwave(Pickupable):
+    def use(self, state, assets):
+        state, assets = super().use(state, assets)
+        state.currRoom.selectables.append(assets.socket)
+        return (state, assets)
+
+class Socket(Selectable):
+    def useWith(self, state, assets):
+        # TODO change this to time machine later
+        if state.selectedItem.name == "Microwave":
+            state.dialog = f"You plugged in the {state.selectedItem.name}"
+            state.currRoom.selectables.remove(self)
+            state.currInventory.remove(state.selectedItem)
+            state.currRoom.selectables.append(assets.microwave)
+            state.selectedItem = None
+            return (state, assets)
+        else:
+            return super().useWith(state, assets)
+
 # Global Inventory Icon
 class Bag(Selectable):
     def __init__(self, pos, name="", image=None, examine="", useTxt="I can't use that"):
@@ -309,6 +339,19 @@ class Assets(object):
             "testManDialog": quizDialog,
             "quizDialog": quizDialog,
         }
+
+        # Inventory Items
+        wrenchImage = pygame.transform.scale(pygame.image.load("graphics/wrench.jpg"), (50,50))
+        self.wrench = Item(pos=(0,0), name="Wrench", image=wrenchImage, examine="It's a wrench.")
+
+        brickExamine = "A kitchen brick. A useful cooking tool and nutritious too."
+        brickImage = pygame.transform.scale(pygame.image.load("graphics/brick.png"), (50,25))
+        self.brickItem = Item(pos=(0,0), name="Brick", image=brickImage, examine=brickExamine)
+
+        mwExamine = "I use this to heat up my Hot Pockets."
+        microwaveImage = pygame.transform.scale(pygame.image.load("graphics/microwave.png"), (50,25))
+        self.microwaveItem = Item(pos=(0,0), name="Microwave", image=microwaveImage, examine=mwExamine)
+
         # Selectables
         self.portrait = Joms(pos=(1180,0), name="Joms", image=pygame.image.load("graphics/Joms.jpg"), examine="It's me, Joms!", useTxt="Moms told me I shouldn't touch myself.")
         self.bag = Bag(pos=(1080,0), name="Open Inventory", image=pygame.image.load("graphics/bag.png"), examine="It's my bag.")
@@ -317,13 +360,16 @@ class Assets(object):
         self.bed = Selectable(pos=(0,330), name="Bed", image=pygame.image.load("graphics/bed.png"), examine="Even though it's a waste of time, I like to make my bed every morning.")
         self.weedPlot = Selectable(pos=(80,435), name="Weed-Filled Garden", image=pygame.image.load("graphics/plotWeeds.png"), examine="No one has weeded this garden in years.")
         self.vegetablesPlot = Selectable(pos=(80,435), name="Garden", image=pygame.image.load("graphics/plotVegetables.png"), examine="GREAT VEGETABLES!")
-        
+        self.brick = Pickupable(pos=(490,318), invItem=self.brickItem, name="Kitchen Brick", image=pygame.image.load("graphics/brick.png"), examine=brickExamine)
+        self.oven = Selectable(pos=(173,312), name="Oven", image=pygame.image.load("graphics/oven.png"), examine="Our oven. Looks like Moms is cooking dinner.")
+        self.fridge = Selectable(pos=(891,110), name="Fridge", image=pygame.image.load("graphics/fridge.png"), examine="There's nothing in it except some expired fruit.")
+        self.pot = Selectable(pos=(190,260), name="Pot", image=pygame.image.load("graphics/pot.png"), examine="A pot of Moms' famous unsalted minced meat.")
+        self.microwave = Microwave(pos=(170,129), invItem=self.microwaveItem, name="Microwave", image=pygame.image.load("graphics/microwave.png"), examine=mwExamine)
+        self.socket = Socket(pos=(250,145), name="Electrical Outlet", image=pygame.image.load("graphics/socket.png"), examine="An electrical outlet.")
+
         # Global selectables container
         self.global_selectables = [self.bag, self.settings, self.portrait]
 
-        # Inventory Items
-        wrenchImage = pygame.transform.scale(pygame.image.load("graphics/wrench.jpg"), (50,50))
-        self.wrench = Item(pos=(0,0), name="Wrench", image=wrenchImage, examine="It's a wrench.")
 
         # NPCs
         self.testMan = NPC(pos=(400,300), name="Test Man", image=pygame.image.load("graphics/testman.png"), examine="Who the fuck is this?", dialogTree=self.dialogTrees["testManDialog"])
@@ -337,10 +383,12 @@ class Assets(object):
             exits=[
                 Exit(rect=pygame.Rect(155, 160, 150, 300), newLoc="bedroom", name="Go to Bedroom"),
                 Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="garden", name="Go Outside"),
-                Exit(rect=pygame.Rect(0, 150, 60, 400), newLoc="bedroom", name="Go to Kitchen"),
+                Exit(rect=pygame.Rect(0, 150, 60, 400), newLoc="kitchen", name="Go to Kitchen"),
             ]
         )
         self.garden = Room(name="garden", bg=pygame.image.load("graphics/jomsHousebg.png"), selectables=[self.weedPlot], exits=[Exit(rect=pygame.Rect(400, 350, 40, 110), newLoc="livingRoom", name="Go Inside"), Exit(rect=pygame.Rect(1180, 200, 100, 520), newLoc="bedroom", name="Go to Town")])
+        self.kitchen = Room(name="kitchen", bg=pygame.image.load("graphics/kitchen.png"), selectables=[self.brick, self.microwave, self.oven, self.pot, self.fridge], exits=[ Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="livingRoom", name="Go to Living Room")])
+        # self.kitchen = Room(name="kitchen", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=[ Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="livingRoom", name="Go to Living Room")])
 
         # Room Lookups
         self.roomLookup = {
@@ -348,6 +396,7 @@ class Assets(object):
             "bedroom" : self.bedroom,
             "livingRoom" : self.livingRoom,
             "garden" : self.garden,
+            "kitchen" : self.kitchen
         }
 
         # Other stuff
@@ -498,7 +547,7 @@ def openInventory(state, assets):
         # Print out the current texts.
         renderDialog = render(state.dialog, font)
         renderHover = render(state.hoverText, font)
-        screen.blit(renderDialog, renderDialog.get_rect(center = (640, 500)))
+        screen.blit(renderDialog, renderDialog.get_rect(center = (640, 600)))
         screen.blit(renderHover, renderHover.get_rect(center = (640, 100)))
 
         pygame.display.flip()
