@@ -354,6 +354,34 @@ quizDialog = {
     },
 }
 
+phoneWaveDialog = {
+    "start": {
+        "text": "Welcome to the PhoneWave (Name Subject To Change).",
+        "options": {
+            "1": "Enter Date",
+            "2": "Leave",
+        },
+        "next": {
+            "1": "...",
+            "2": "leave",
+        },
+    },
+    "...": {
+        "text":  "...",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "leave",
+        },
+        "events": ["phoneWaveInput"],
 
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
 
 

@@ -115,7 +115,7 @@ def checkHoverText(selectablesLists, state) -> str:
                     if selectable != assets.bag or state.selectedItem is None:
                         state.hoverText += selectable.name
     
-    # state.hoverText = f"{pygame.mouse.get_pos()}"
+    state.hoverText += f"{pygame.mouse.get_pos()}"
     return state
 
 
@@ -186,11 +186,12 @@ def startDialog(state, assets, x=640, y=550, fontSize=32):
 ### Base Item Classes
 # Base Room class with it's background, selectable objects, and exits
 class Room(object):
-    def __init__(self, name, bg=None, selectables=[], exits=[]):
+    def __init__(self, name, bg=None, selectables=[], exits=[], enterEvents=[]):
         self.bg = bg
         self.selectables = selectables
         self.name = name
         self.exits = exits
+        self.enterEvents = enterEvents
 
 # Base selectable class. Anything that can be iteracted with should be this class.
 class Selectable(object):
@@ -271,14 +272,27 @@ class Microwave(Pickupable):
         state.currRoom.selectables.append(assets.socket)
         return (state, assets)
 
+class PhoneWaveActive(Selectable):
+    def use(self, state, assets):
+        if state.currRoom == assets.kitchen:
+            state.currRoom = assets.pastKitchen
+        else:
+            state.currRoom = assets.kitchen
+        return (state, assets)
+
+class Pot(Selectable):
+    def use(self, state, assets):
+        state.dialog = "You stirred the pot! Congratulations."
+        return (state, assets)
+
 class Socket(Selectable):
     def useWith(self, state, assets):
         # TODO change this to time machine later
-        if state.selectedItem.name == "Microwave":
+        if state.selectedItem.name == "PhoneWave (Name Subject To Change)":
             state.dialog = f"You plugged in the {state.selectedItem.name}"
             state.currRoom.selectables.remove(self)
             state.currInventory.remove(state.selectedItem)
-            state.currRoom.selectables.append(assets.microwave)
+            state.currRoom.selectables.append(assets.phoneWave)
             state.selectedItem = None
             return (state, assets)
         else:
@@ -338,6 +352,7 @@ class Assets(object):
             # "testManDialog": testManDialog,
             "testManDialog": quizDialog,
             "quizDialog": quizDialog,
+            "phoneWaveDialog": phoneWaveDialog,
         }
 
         # Inventory Items
@@ -350,7 +365,11 @@ class Assets(object):
 
         mwExamine = "I use this to heat up my Hot Pockets."
         microwaveImage = pygame.transform.scale(pygame.image.load("graphics/microwave.png"), (50,25))
-        self.microwaveItem = Item(pos=(0,0), name="Microwave", image=microwaveImage, examine=mwExamine)
+        # self.microwaveItem = Item(pos=(0,0), name="Microwave", image=microwaveImage, examine=mwExamine)
+
+        pwImage = pygame.transform.scale(pygame.image.load("graphics/phonewave.png"), (50,25))
+        # self.phoneWaveItem = Item(pos=(0,0), name="PhoneWave (Name Subject To Change)", image=pwImage, examine="It's the PhoneWave (Name Subject to Change)!")
+        self.microwaveItem = Item(pos=(0,0), name="PhoneWave (Name Subject To Change)", image=pwImage, examine="It's the PhoneWave (Name Subject to Change)!")
 
         # Selectables
         self.portrait = Joms(pos=(1180,0), name="Joms", image=pygame.image.load("graphics/Joms.jpg"), examine="It's me, Joms!", useTxt="Moms told me I shouldn't touch myself.")
@@ -358,14 +377,19 @@ class Assets(object):
         self.settings = NPC(pos=(0,0), name="Settings", image=pygame.image.load("graphics/settings.png"), examine="A hastily drawn cogwheel", dialogTree=self.dialogTrees["settingsMenu"])
         self.computer = Selectable(pos=(550,350), name="Use Computer", image=pygame.image.load("graphics/Computer.png"), examine="My old computer I use to browse dank memes.")
         self.bed = Selectable(pos=(0,330), name="Bed", image=pygame.image.load("graphics/bed.png"), examine="Even though it's a waste of time, I like to make my bed every morning.")
+        self.bedPast = Selectable(pos=(0,330), name="Bed", image=pygame.image.load("graphics/bedPast.png"), examine="Looks like Joms Sr also wastes his time making his bed each morning.")
         self.weedPlot = Selectable(pos=(80,435), name="Weed-Filled Garden", image=pygame.image.load("graphics/plotWeeds.png"), examine="No one has weeded this garden in years.")
+        self.plotPast = Selectable(pos=(80,435), name="Weed-Free Garden", image=pygame.image.load("graphics/plotPast.png"), examine="Looks like this was the last time the garden was weeded.")
         self.vegetablesPlot = Selectable(pos=(80,435), name="Garden", image=pygame.image.load("graphics/plotVegetables.png"), examine="GREAT VEGETABLES!")
         self.brick = Pickupable(pos=(490,318), invItem=self.brickItem, name="Kitchen Brick", image=pygame.image.load("graphics/brick.png"), examine=brickExamine)
-        self.oven = Selectable(pos=(173,312), name="Oven", image=pygame.image.load("graphics/oven.png"), examine="Our oven. Looks like Moms is cooking dinner.")
+        self.oven = Selectable(pos=(173,312), name="Oven", image=pygame.image.load("graphics/oven.png"), examine="Looks like chocolate chip-less chocolate chip cookies are being baked. Delicious!")
+        self.ovenPast = Selectable(pos=(173,312), name="Oven", image=pygame.image.load("graphics/oven.png"), examine="Our oven. Looks like Moms is cooking dinner.")
         self.fridge = Selectable(pos=(891,110), name="Fridge", image=pygame.image.load("graphics/fridge.png"), examine="There's nothing in it except some expired fruit.")
-        self.pot = Selectable(pos=(190,260), name="Pot", image=pygame.image.load("graphics/pot.png"), examine="A pot of Moms' famous unsalted minced meat.")
+        self.fridgePast = Selectable(pos=(891,110), name="Fridge", image=pygame.image.load("graphics/fridge.png"), examine="There's nothing in it except some ripe fruit.")
+        self.pot = Pot(pos=(190,260), name="Pot", image=pygame.image.load("graphics/pot.png"), examine="A pot of Moms' famous unsalted minced meat.")
         self.microwave = Microwave(pos=(170,129), invItem=self.microwaveItem, name="Microwave", image=pygame.image.load("graphics/microwave.png"), examine=mwExamine)
         self.socket = Socket(pos=(250,145), name="Electrical Outlet", image=pygame.image.load("graphics/socket.png"), examine="An electrical outlet.")
+        self.phoneWaveActive = PhoneWaveActive(pos=(170,129), name="PhoneWave (Name Subject To Change)", image=pygame.image.load("graphics/phonewaveActive.png"), examine="It's the PhoneWave (Name Subject to Change)!")
 
         # Global selectables container
         self.global_selectables = [self.bag, self.settings, self.portrait]
@@ -373,9 +397,11 @@ class Assets(object):
 
         # NPCs
         self.testMan = NPC(pos=(400,300), name="Test Man", image=pygame.image.load("graphics/testman.png"), examine="Who the fuck is this?", dialogTree=self.dialogTrees["testManDialog"])
+        self.phoneWave = NPC(pos=(170,129), name="PhoneWave", image=pygame.image.load("graphics/phonewave.png"), examine="It's the PhoneWave (Name Subject To Change)", dialogTree=self.dialogTrees["phoneWaveDialog"])
 
         # Rooms
         self.bedroom = Room(name="bedroom", bg=pygame.image.load("graphics/Bedroom.png"), selectables=[self.computer, self.bed, self.testMan], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="livingRoom", name="Go to Living Room")])
+        self.pastBedroom = Room(name="bedroom", bg=pygame.image.load("graphics/bedroombgPast.png"), selectables=[self.computer, self.bedPast], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="pastLivingRoom", name="Go to Living Room")])
         self.livingRoom = Room(
             name="livingRoom",
             bg=pygame.image.load("graphics/livingroom.png"),
@@ -386,17 +412,47 @@ class Assets(object):
                 Exit(rect=pygame.Rect(0, 150, 60, 400), newLoc="kitchen", name="Go to Kitchen"),
             ]
         )
-        self.garden = Room(name="garden", bg=pygame.image.load("graphics/jomsHousebg.png"), selectables=[self.weedPlot], exits=[Exit(rect=pygame.Rect(400, 350, 40, 110), newLoc="livingRoom", name="Go Inside"), Exit(rect=pygame.Rect(1180, 200, 100, 520), newLoc="bedroom", name="Go to Town")])
+        self.pastLivingRoom = Room(
+            name="pastLivingRoom",
+            bg=pygame.image.load("graphics/livingroomPast.png"),
+            selectables=[],
+            exits=[
+                Exit(rect=pygame.Rect(155, 160, 150, 300), newLoc="pastBedroom", name="Go to Bedroom"),
+                Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="pastGarden", name="Go Outside"),
+                Exit(rect=pygame.Rect(0, 150, 60, 400), newLoc="pastKitchen", name="Go to Kitchen"),
+            ]
+        )
+        self.garden = Room(name="garden", bg=pygame.image.load("graphics/jomsHousebg.png"), selectables=[self.weedPlot], exits=[Exit(rect=pygame.Rect(400, 350, 40, 110), newLoc="livingRoom", name="Go Inside"), Exit(rect=pygame.Rect(1180, 200, 100, 520), newLoc="townSquare", name="Go to Town")])
+        self.pastGarden = Room(name="pastGarden", bg=pygame.image.load("graphics/jomsHousebgPast.png"), selectables=[self.plotPast], exits=[Exit(rect=pygame.Rect(400, 350, 40, 110), newLoc="pastLivingRoom", name="Go Inside")])
         self.kitchen = Room(name="kitchen", bg=pygame.image.load("graphics/kitchen.png"), selectables=[self.brick, self.microwave, self.oven, self.pot, self.fridge], exits=[ Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="livingRoom", name="Go to Living Room")])
-        # self.kitchen = Room(name="kitchen", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=[ Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="livingRoom", name="Go to Living Room")])
+        self.pastKitchen = Room(name="pastKitchen", bg=pygame.image.load("graphics/kitchenPast.png"), selectables=[self.phoneWaveActive, self.ovenPast, self.fridgePast], exits=[ Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="pastLivingRoom", name="Go to Living Room")])
+        self.townSquare = Room(
+            name="townSquare",
+            bg=pygame.image.load("graphics/townSquare.png"),
+            selectables=[],
+            exits=[
+                Exit(rect=pygame.Rect(0, 620, 1280, 100), newLoc="garden", name="Go to Joms' House"),
+                Exit(rect=pygame.Rect(50, 300, 300, 200), newLoc="garden", name="Go to Bar"), # TODO update these to real loc
+                Exit(rect=pygame.Rect(920, 305, 350, 190), newLoc="garden", name="Go to School"), # TODO update these to real loc
+                Exit(rect=pygame.Rect(405, 105, 500, 200), newLoc="garden", name="Go to Train Station"), # TODO update these to real loc
+            ],
+            enterEvents=["takePopcorn"],
+        )
+
+        # LEFT, TOP, WIDTH, HEIGHT
 
         # Room Lookups
         self.roomLookup = {
             "" : self.bedroom,
-            "bedroom" : self.bedroom,
+            "bedroom": self.bedroom,
+            "pastBedroom": self.pastBedroom,
             "livingRoom" : self.livingRoom,
+            "pastLivingRoom": self.pastLivingRoom,
             "garden" : self.garden,
-            "kitchen" : self.kitchen
+            "pastGarden": self.pastGarden,
+            "kitchen" : self.kitchen,
+            "pastKitchen": self.pastKitchen,
+            "townSquare": self.townSquare,
         }
 
         # Other stuff
@@ -459,7 +515,18 @@ def scoreQuiz(state, assets):
     return (state, assets)
 
 def essayQuestion(state, assets):
-    essayPrompt(state, assets)
+    essayPrompt(state, assets, text="Final question: Define a slur.")
+    return (state, assets)
+
+def phoneWaveInput(state, assets):
+    input = essayPrompt(state, assets, text="Please enter the date you wish to travel to in the objectively correct YY/DD/M Format.")
+    if input == "11037" or input == "11/03/7":
+        state.currRoom.selectables.remove(assets.phoneWave)
+        state.currRoom.selectables.append(assets.phoneWaveActive)
+    return (state, assets)
+
+def takePopcorn(state, assets):
+    # TODO add check for if bagchan is fed and take popcorn
     return (state, assets)
 
 # Dictionary to map dialog options to functions
@@ -468,6 +535,9 @@ eventLookup = {
     "wrenchTaken" : wrenchTaken,
     "exitGame" : exitGame,
     "newGame" : newGame,
+
+    "phoneWaveInput": phoneWaveInput,
+    "takePopcorn": takePopcorn,
 
     # Quiz
     "resetQuizScore" : resetQuizScore,
@@ -557,7 +627,7 @@ def openInventory(state, assets):
 
 
 ################
-def essayPrompt(state, assets):
+def essayPrompt(state, assets, text):
     text_color = (255, 255, 255)
 
     font = pygame.font.Font(None, 32)
@@ -572,10 +642,9 @@ def essayPrompt(state, assets):
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    # Process the entered text (e.g., send in a chat)
-                    # print("Entered:", input_text)
-                    input_text = ""
-                    return
+                    # ret = input_text
+                    # input_text = ""
+                    return input_text
                 elif event.key == pygame.K_BACKSPACE:
                     input_text = input_text[:-1]
                 else:
@@ -590,7 +659,7 @@ def essayPrompt(state, assets):
         screen.blit(text_surface, (input_rect.x + 5, input_rect.y + 5))
         pygame.draw.rect(screen, text_color, input_rect, 2)
 
-        renderDialog = render("Final question: Define a slur.", font)
+        renderDialog = render(text, font)
         screen.blit(renderDialog, renderDialog.get_rect(center = (640, 550)))
 
         pygame.display.flip()
@@ -642,6 +711,8 @@ while True:
                 if exit.rect.collidepoint(x,y):
                     if event.button == 1:
                         state.currRoom = assets.roomLookup[exit.newLoc]
+                        for enterEvent in state.currRoom.enterEvents:
+                            state, assets = eventLookup[enterEvent](state, assets)
                         state.dialog=""
 
     # Update hoverText to whatever the mouse is hovering over
