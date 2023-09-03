@@ -268,7 +268,7 @@ quizDialog = {
             "1": "Persona 3",
             "2": "Persona 4",
             "3": "Persona 5",
-            "4": "Shin Megami Tensei V",
+            "4": "All of the above",
         },
         "next": {
             "1": "rightPersona",

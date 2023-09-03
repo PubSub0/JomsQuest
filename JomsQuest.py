@@ -96,8 +96,8 @@ def drawEverything(state, assets):
     # Print out the current texts.
     renderDialog = render(state.dialog, font)
     renderHover = render(state.hoverText, font)
-    screen.blit(renderDialog, renderDialog.get_rect(center = (400, 500)))
-    screen.blit(renderHover, renderHover.get_rect(center = (400, 100)))
+    screen.blit(renderDialog, renderDialog.get_rect(center = (640, 600)))
+    screen.blit(renderHover, renderHover.get_rect(center = (640, 100)))
 
 # Gives you the current hovertext
 # TODO maybe move hovertext to state?
@@ -120,7 +120,7 @@ def checkHoverText(selectablesLists, state) -> str:
 
 
 # Function to run the given dialog tree
-def startDialog(state, assets, x=400, y=450, fontSize=32):
+def startDialog(state, assets, x=640, y=550, fontSize=32):
     # Always assume dialog starts at start in the dict
     currNode = "start"
     state.dialog = ""
@@ -313,7 +313,10 @@ class Assets(object):
         self.portrait = Joms(pos=(1180,0), name="Joms", image=pygame.image.load("graphics/Joms.jpg"), examine="It's me, Joms!", useTxt="Moms told me I shouldn't touch myself.")
         self.bag = Bag(pos=(1080,0), name="Open Inventory", image=pygame.image.load("graphics/bag.png"), examine="It's my bag.")
         self.settings = NPC(pos=(0,0), name="Settings", image=pygame.image.load("graphics/settings.png"), examine="A hastily drawn cogwheel", dialogTree=self.dialogTrees["settingsMenu"])
-        self.computer = Selectable(pos=(250,275), name="Use Computer", image=pygame.image.load("graphics/Computer.png"), examine="My old computer I use to browse dank memes.")
+        self.computer = Selectable(pos=(550,350), name="Use Computer", image=pygame.image.load("graphics/Computer.png"), examine="My old computer I use to browse dank memes.")
+        self.bed = Selectable(pos=(0,330), name="Bed", image=pygame.image.load("graphics/bed.png"), examine="Even though it's a waste of time, I like to make my bed every morning.")
+        self.weedPlot = Selectable(pos=(80,435), name="Weed-Filled Garden", image=pygame.image.load("graphics/plotWeeds.png"), examine="No one has weeded this garden in years.")
+        self.vegetablesPlot = Selectable(pos=(80,435), name="Garden", image=pygame.image.load("graphics/plotVegetables.png"), examine="GREAT VEGETABLES!")
         
         # Global selectables container
         self.global_selectables = [self.bag, self.settings, self.portrait]
@@ -326,14 +329,25 @@ class Assets(object):
         self.testMan = NPC(pos=(400,300), name="Test Man", image=pygame.image.load("graphics/testman.png"), examine="Who the fuck is this?", dialogTree=self.dialogTrees["testManDialog"])
 
         # Rooms
-        self.bedroom = Room(name="bedroom", bg=pygame.image.load("graphics/Bedroom.png"), selectables=[self.computer, self.testMan], exits=[Exit(rect=pygame.Rect(560, 130, 180, 300), newLoc="outside", name="Go Outside")])
-        self.outside = Room(name="outside", bg=pygame.image.load("graphics/shitjomshouse.png"), exits=[Exit(rect=pygame.Rect(280, 350, 70, 120), newLoc="bedroom", name="Go Inside")])
+        self.bedroom = Room(name="bedroom", bg=pygame.image.load("graphics/Bedroom.png"), selectables=[self.computer, self.bed, self.testMan], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="livingRoom", name="Go to Living Room")])
+        self.livingRoom = Room(
+            name="livingRoom",
+            bg=pygame.image.load("graphics/livingroom.png"),
+            selectables=[],
+            exits=[
+                Exit(rect=pygame.Rect(155, 160, 150, 300), newLoc="bedroom", name="Go to Bedroom"),
+                Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="garden", name="Go Outside"),
+                Exit(rect=pygame.Rect(0, 150, 60, 400), newLoc="bedroom", name="Go to Kitchen"),
+            ]
+        )
+        self.garden = Room(name="garden", bg=pygame.image.load("graphics/jomsHousebg.png"), selectables=[self.weedPlot], exits=[Exit(rect=pygame.Rect(400, 350, 40, 110), newLoc="livingRoom", name="Go Inside"), Exit(rect=pygame.Rect(1180, 200, 100, 520), newLoc="bedroom", name="Go to Town")])
 
         # Room Lookups
         self.roomLookup = {
             "" : self.bedroom,
             "bedroom" : self.bedroom,
-            "outside" : self.outside,
+            "livingRoom" : self.livingRoom,
+            "garden" : self.garden,
         }
 
         # Other stuff
@@ -484,8 +498,8 @@ def openInventory(state, assets):
         # Print out the current texts.
         renderDialog = render(state.dialog, font)
         renderHover = render(state.hoverText, font)
-        screen.blit(renderDialog, renderDialog.get_rect(center = (400, 500)))
-        screen.blit(renderHover, renderHover.get_rect(center = (400, 100)))
+        screen.blit(renderDialog, renderDialog.get_rect(center = (640, 500)))
+        screen.blit(renderHover, renderHover.get_rect(center = (640, 100)))
 
         pygame.display.flip()
         # 60 FPS
@@ -500,7 +514,7 @@ def essayPrompt(state, assets):
     font = pygame.font.Font(None, 32)
 
     input_text = ""
-    input_rect = pygame.Rect(250, 500, 500, 30)
+    input_rect = pygame.Rect(490, 600, 500, 30)
 
     while True:
         for event in pygame.event.get():
@@ -528,7 +542,7 @@ def essayPrompt(state, assets):
         pygame.draw.rect(screen, text_color, input_rect, 2)
 
         renderDialog = render("Final question: Define a slur.", font)
-        screen.blit(renderDialog, renderDialog.get_rect(center = (400, 450)))
+        screen.blit(renderDialog, renderDialog.get_rect(center = (640, 550)))
 
         pygame.display.flip()
         clock.tick(60)
