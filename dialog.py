@@ -414,7 +414,7 @@ keypadDialog = {
         },
     },
     "730": {
-        "text" : "The sprinklers came on at 10:00 not 7:30 :)",
+        "text" : "Well you see, you actually needed to contradict what time the sprinklers were supposed to come on, so in reality you SHOULD have entered 10:00 not 7:30.",
         "options": {
             "1" : "Continue..."
         },
@@ -438,3 +438,19 @@ keypadDialog = {
     },
 }
 
+momsDialog = {
+    "start": {
+        "text": "How are you doing honey?",
+        "options": {
+            "2": "Leave",
+        },
+        "next": {
+            "2": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
