@@ -364,7 +364,7 @@ class Assets(object):
             "testManDialog": quizDialog,
             "quizDialog": quizDialog,
             "phoneWaveDialog": phoneWaveDialog,
-            "keypadDialog": keypadDialog[0], # Why the fuck is this a tuple?
+            "keypadDialog": keypadDialog,
         }
 
         # Inventory Items
@@ -455,15 +455,13 @@ class Assets(object):
         self.school = Room(
             name="school",
             bg=pygame.image.load("graphics/school.png"),
-            # selectables=[self.breakGlass],
-            selectables=[self.keypad],
+            selectables=[self.breakGlass],
             exits=[
                 Exit(rect=pygame.Rect(1150, 170, 300, 600), newLoc="townSquare", name="Go to Town"),
                 Exit(rect=pygame.Rect(25, 170, 210, 400), newLoc="townSquare", name="Go to Classroom"), # TODO Fix this
                 Exit(rect=pygame.Rect(700, 180, 175, 400), newLoc="townSquare", name="Got to Boy's Bathroom"), # TODO Fix this
                 Exit(rect=pygame.Rect(920, 180, 175, 400), newLoc="townSquare", name="Got to Girl's Bathroom"), # TODO Fix this
             ],
-            # exits=["classroom", "boysBathroom", "girlsBathroom", "townSquare"]
         )
         self.classroom = Room(name="classroom", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["school"])
         self.boysBathroom = Room(name="boysBathroom", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["school"])
@@ -574,12 +572,12 @@ def takePopcorn(state, assets):
 def setTime(state, assets):
     input = essayPrompt(state, assets, text="Please enter the hour you wish to set the clocks to.")
     if input == "10" or input == "10:00" or input == "1000":
-        keypadDialog[0]["explain"]["next"] = {"1": "sprinklers"}
-        # TODO add sprinklers
+        keypadDialog["explain"]["next"] = {"1": "sprinklers"}
+        # TODO add sprinklers on here
     elif input == "730" or input == "7:30":
-        keypadDialog[0]["explain"]["next"] = {"1": "730"}
+        keypadDialog["explain"]["next"] = {"1": "730"}
     else:
-        keypadDialog[0]["explain"]["next"] = {"1": "nothing"}
+        keypadDialog["explain"]["next"] = {"1": "nothing"}
     return (state, assets)
 
 # Dictionary to map dialog options to functions

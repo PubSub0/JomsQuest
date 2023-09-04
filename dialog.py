@@ -436,5 +436,5 @@ keypadDialog = {
         "options": {},
         "next": None,
     },
-},
+}
 
