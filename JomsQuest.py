@@ -298,6 +298,16 @@ class Socket(Selectable):
         else:
             return super().useWith(state, assets)
 
+class BreakGlass(Selectable):
+    def useWith(self, state, assets):
+        if state.selectedItem.name == "Brick":
+            if state.karuOnFire:
+                state.currRoom.selectables.remove(self)
+                state.currRoom.selectables.append(assets.keypad)
+            else:
+                state.dialog = "There's no emergancy. I shouldn't break the glass."
+        return (state, assets)
+
 # Global Inventory Icon
 class Bag(Selectable):
     def __init__(self, pos, name="", image=None, examine="", useTxt="I can't use that"):
@@ -340,6 +350,7 @@ class State(object):
         self.selectedItem = None
         self.wrenchTaken = False
         self.examScore = 0
+        self.karuOnFire = True # TODO False
 
 
 # Container for all the instances of things the game uses. Inefficient but fuck it.
@@ -353,6 +364,7 @@ class Assets(object):
             "testManDialog": quizDialog,
             "quizDialog": quizDialog,
             "phoneWaveDialog": phoneWaveDialog,
+            "keypadDialog": keypadDialog[0], # Why the fuck is this a tuple?
         }
 
         # Inventory Items
@@ -390,14 +402,15 @@ class Assets(object):
         self.microwave = Microwave(pos=(170,129), invItem=self.microwaveItem, name="Microwave", image=pygame.image.load("graphics/microwave.png"), examine=mwExamine)
         self.socket = Socket(pos=(250,145), name="Electrical Outlet", image=pygame.image.load("graphics/socket.png"), examine="An electrical outlet.")
         self.phoneWaveActive = PhoneWaveActive(pos=(170,129), name="PhoneWave (Name Subject To Change)", image=pygame.image.load("graphics/phonewaveActive.png"), examine="It's the PhoneWave (Name Subject to Change)!")
+        self.breakGlass = BreakGlass(pos=(500,330), name="Emergency Break Glass", image=pygame.image.load("graphics/breakGlass.png"), examine="\"Incase of emergancy, break glass.\"")
 
         # Global selectables container
         self.global_selectables = [self.bag, self.settings, self.portrait]
 
-
         # NPCs
         self.testMan = NPC(pos=(400,300), name="Test Man", image=pygame.image.load("graphics/testman.png"), examine="Who the fuck is this?", dialogTree=self.dialogTrees["testManDialog"])
         self.phoneWave = NPC(pos=(170,129), name="PhoneWave", image=pygame.image.load("graphics/phonewave.png"), examine="It's the PhoneWave (Name Subject To Change)", dialogTree=self.dialogTrees["phoneWaveDialog"])
+        self.keypad = NPC(pos=(500,330), name="Emergancy Keypad", image=pygame.image.load("graphics/keypad.png"), examine="How does this help in the event of an emergancy?", dialogTree=self.dialogTrees["keypadDialog"])
 
         # Rooms
         self.bedroom = Room(name="bedroom", bg=pygame.image.load("graphics/Bedroom.png"), selectables=[self.computer, self.bed, self.testMan], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="livingRoom", name="Go to Living Room")])
@@ -433,11 +446,32 @@ class Assets(object):
             exits=[
                 Exit(rect=pygame.Rect(0, 620, 1280, 100), newLoc="garden", name="Go to Joms' House"),
                 Exit(rect=pygame.Rect(50, 300, 300, 200), newLoc="garden", name="Go to Bar"), # TODO update these to real loc
-                Exit(rect=pygame.Rect(920, 305, 350, 190), newLoc="garden", name="Go to School"), # TODO update these to real loc
+                Exit(rect=pygame.Rect(920, 305, 350, 190), newLoc="school", name="Go to School"),
                 Exit(rect=pygame.Rect(405, 105, 500, 200), newLoc="garden", name="Go to Train Station"), # TODO update these to real loc
             ],
             enterEvents=["takePopcorn"],
         )
+        # TODO stuff
+        self.school = Room(
+            name="school",
+            bg=pygame.image.load("graphics/school.png"),
+            # selectables=[self.breakGlass],
+            selectables=[self.keypad],
+            exits=[
+                Exit(rect=pygame.Rect(1150, 170, 300, 600), newLoc="townSquare", name="Go to Town"),
+                Exit(rect=pygame.Rect(25, 170, 210, 400), newLoc="townSquare", name="Go to Classroom"), # TODO Fix this
+                Exit(rect=pygame.Rect(700, 180, 175, 400), newLoc="townSquare", name="Got to Boy's Bathroom"), # TODO Fix this
+                Exit(rect=pygame.Rect(920, 180, 175, 400), newLoc="townSquare", name="Got to Girl's Bathroom"), # TODO Fix this
+            ],
+            # exits=["classroom", "boysBathroom", "girlsBathroom", "townSquare"]
+        )
+        self.classroom = Room(name="classroom", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["school"])
+        self.boysBathroom = Room(name="boysBathroom", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["school"])
+        self.girlsBathroom = Room(name="girlsBathroom", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["school"])
+        self.trainStation = Room(name="trainStation", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "moncton"])
+        self.bar = Room(name="bar", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "bar"])
+        self.fightClub = Room(name="fightClub", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "bar"])
+        self.moncton = Room(name="moncton", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=[])
 
         # LEFT, TOP, WIDTH, HEIGHT
 
@@ -453,6 +487,14 @@ class Assets(object):
             "kitchen" : self.kitchen,
             "pastKitchen": self.pastKitchen,
             "townSquare": self.townSquare,
+            "school": self.school,
+            "classroom": self.classroom,
+            "boysBathroom": self.boysBathroom,
+            "girlsBathroom": self.girlsBathroom,
+            "trainStation": self.trainStation,
+            "bar": self.bar,
+            "fightClub": self.fightClub,
+            "moncton": self.moncton,
         }
 
         # Other stuff
@@ -529,6 +571,17 @@ def takePopcorn(state, assets):
     # TODO add check for if bagchan is fed and take popcorn
     return (state, assets)
 
+def setTime(state, assets):
+    input = essayPrompt(state, assets, text="Please enter the hour you wish to set the clocks to.")
+    if input == "10" or input == "10:00" or input == "1000":
+        keypadDialog[0]["explain"]["next"] = {"1": "sprinklers"}
+        # TODO add sprinklers
+    elif input == "730" or input == "7:30":
+        keypadDialog[0]["explain"]["next"] = {"1": "730"}
+    else:
+        keypadDialog[0]["explain"]["next"] = {"1": "nothing"}
+    return (state, assets)
+
 # Dictionary to map dialog options to functions
 eventLookup = {
     "giveWrench" : giveWrench,
@@ -538,6 +591,7 @@ eventLookup = {
 
     "phoneWaveInput": phoneWaveInput,
     "takePopcorn": takePopcorn,
+    "setTime": setTime,
 
     # Quiz
     "resetQuizScore" : resetQuizScore,

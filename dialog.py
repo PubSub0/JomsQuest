@@ -384,4 +384,57 @@ phoneWaveDialog = {
     },
 }
 
+keypadDialog = {
+    "start": {
+        "text": "As you use approach the keypad, a voice sounds from the school's PA system. \"This is the school-wide clock override system.\"",
+        "options": {
+            "1": "Continue..."
+        },
+        "next": {
+            "1": "explain",
+        },
+    },
+    "explain": {
+        "text": "Please enter the hour you wish to set the clocks to.",
+        "options": {
+            "1": "Continue...",
+        },
+        "next": {
+            "1": "nothing",
+        },
+        "events": ["setTime"],
+    },
+    "nothing": {
+        "text": "You set the time, but nothing happens.",
+        "options": { 
+            "1": "Continue...",
+        },
+        "next": {
+            "1": "leave"
+        },
+    },
+    "730": {
+        "text" : "The sprinklers came on at 10:00 not 7:30 :)",
+        "options": {
+            "1" : "Continue..."
+        },
+        "next": {
+            "1" : "nothing",
+        },
+    },
+    "sprinklers": {
+        "text": "You hear a rush of water coming from the girl's bathroom.",
+        "options": {
+            "1": "Continue..."
+        },
+        "next": {
+            "1": "leave"
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+},
 
