@@ -238,6 +238,15 @@ class NPC(Selectable):
         state.dialog = "They don't want that."
         return (state, assets)
 
+class Nodja(NPC):
+    def useWith(self, state, assets):
+        if state.selectedItem == assets.microwaveItem:
+            state.selectedItem = None
+            state.currInventory.remove(assets.microwaveItem)
+            state.currInventory.append(assets.phoneWaveItem)
+            state.dialog = "A broken microwave huh? I can fix this and make a few improvements."
+        return (state, assets)
+
 # Base class for exits
 # TODO I could probably make this a selectable idk
 class Exit(object):
@@ -286,6 +295,12 @@ class Microwave(Pickupable):
         state, assets = super().use(state, assets)
         state.currRoom.selectables.append(assets.socket)
         return (state, assets)
+
+class BatRack(Pickupable):
+    def use(self, state, assets):
+        state, assets = super().use(state, assets)
+        state.currRoom.selectables.append(assets.batRackEmpty)
+        return(state, assets)
 
 class PhoneWaveActive(Selectable):
     def use(self, state, assets):
@@ -364,8 +379,8 @@ class State(object):
         self.currInventory = []
         self.selectedItem = None
         self.examScore = 0
-        self.karuOnFire = False
-        self.isGirl = False
+        self.karuOnFire = True # False
+        self.isGirl = True # TODO False
 
 
 # Container for all the instances of things the game uses. Inefficient but fuck it.
@@ -375,27 +390,31 @@ class Assets(object):
         self.dialogTrees = {
             "mainMenu": mainMenu,
             "settingsMenu": settingsMenu,
-            "testManDialog": quizDialog,
             "quizDialog": quizDialog,
             "phoneWaveDialog": phoneWaveDialog,
             "keypadDialog": keypadDialog,
             "momsDialog": momsDialog,
+            "jomsSrDialog": jomsSrDialog,
+            "inventorDialog": inventorDialog,
         }
 
         # Inventory Items
         brickExamine = "A kitchen brick. A useful cooking tool and nutritious too."
-        brickImage = pygame.transform.scale(pygame.image.load("graphics/brick.png"), (50,25))
+        brickImage = pygame.transform.scale(pygame.image.load("graphics/brick.png"), (100,50))
         self.brickItem = Item(pos=(0,0), name="Brick", image=brickImage, examine=brickExamine)
 
         mwExamine = "I use this to heat up my Hot Pockets."
-        microwaveImage = pygame.transform.scale(pygame.image.load("graphics/microwave.png"), (50,25))
+        microwaveImage = pygame.transform.scale(pygame.image.load("graphics/microwave.png"), (100,50))
         self.microwaveItem = Item(pos=(0,0), name="Microwave", image=microwaveImage, examine=mwExamine)
 
-        pwImage = pygame.transform.scale(pygame.image.load("graphics/phonewave.png"), (50,25))
+        pwImage = pygame.transform.scale(pygame.image.load("graphics/phonewave.png"), (100,50))
         self.phoneWaveItem = Item(pos=(0,0), name="PhoneWave (Name Subject To Change)", image=pwImage, examine="It's the PhoneWave (Name Subject to Change)!")
 
-        trainTicketImage = pygame.transform.scale(pygame.image.load("graphics/trainTicket.png"), (50,50))
+        trainTicketImage = pygame.transform.scale(pygame.image.load("graphics/trainTicket.png"), (100,100))
         self.trainTicket = Item(pos=(0,0), name="Train Ticket", image=trainTicketImage, examine="A round trip pass on the Maroon Vista train line.")
+
+        batItem = pygame.transform.scale(pygame.image.load("graphics/bat.png"), (100,100))
+        self.batItem = Item(pos=(0,0), name="Baseball Bat", image=batItem, examine="I better be careful, this is a deadly weapon.")
 
         # Selectables
         self.portrait = Joms(pos=(1180,0), name="Joms", image=pygame.image.load("graphics/Joms.jpg"), examine="It's me, Joms!", useTxt="Moms told me I shouldn't touch myself.")
@@ -406,7 +425,7 @@ class Assets(object):
         self.bedPast = Selectable(pos=(0,330), name="Bed", image=pygame.image.load("graphics/bedPast.png"), examine="Looks like Joms Sr also wastes his time making his bed each morning.")
         self.weedPlot = Selectable(pos=(80,435), name="Weed-Filled Garden", image=pygame.image.load("graphics/plotWeeds.png"), examine="No one has weeded this garden in years.")
         self.plotPast = Selectable(pos=(80,435), name="Weed-Free Garden", image=pygame.image.load("graphics/plotPast.png"), examine="Looks like this was the last time the garden was weeded.")
-        self.vegetablesPlot = Selectable(pos=(80,435), name="Garden", image=pygame.image.load("graphics/plotVegetables.png"), examine="GREAT VEGETABLES!")
+        self.vegetablesPlot = Selectable(pos=(80,435), name="GREAT VEGETABLES!", image=pygame.image.load("graphics/plotVegetables.png"), examine="GREAT VEGETABLES!")
         self.brick = Pickupable(pos=(490,318), invItem=self.brickItem, name="Kitchen Brick", image=pygame.image.load("graphics/brick.png"), examine=brickExamine)
         self.oven = Selectable(pos=(173,312), name="Oven", image=pygame.image.load("graphics/oven.png"), examine="Looks like chocolate chip-less chocolate chip cookies are being baked. Delicious!")
         self.ovenPast = Selectable(pos=(173,312), name="Oven", image=pygame.image.load("graphics/oven.png"), examine="Our oven. Looks like Moms is cooking dinner.")
@@ -418,23 +437,32 @@ class Assets(object):
         self.phoneWaveActive = PhoneWaveActive(pos=(170,129), name="PhoneWave (Name Subject To Change)", image=pygame.image.load("graphics/phonewaveActive.png"), examine="It's the PhoneWave (Name Subject to Change)!")
         self.breakGlass = BreakGlass(pos=(500,330), name="Emergency Break Glass", image=pygame.image.load("graphics/breakGlass.png"), examine="\"Incase of emergancy, break glass.\"")
 
+        self.sprinkler1 = Selectable(pos=(475,110), name="Sprinkler", image=pygame.image.load("graphics/sprinklersOff.png"), examine="An emergancy sprinkler programmed to turn on at 7:30.")
+        self.sprinkler2 = Selectable(pos=(910,110), name="Sprinkler", image=pygame.image.load("graphics/sprinklersOff.png"), examine="An emergancy sprinkler programmed to turn on at 7:30.")
+        self.batRack = BatRack(pos=(1050,550), invItem=self.batItem, name="Bat Rack", image=pygame.image.load("graphics/batRack.png"), examine="A bat rack, it's a rack for bats, a bat rack.")
+        self.batRackEmpty = Selectable(pos=(1050,550), name="Bat Rack", image=pygame.image.load("graphics/batRackEmpty.png"), examine="I don't even own a bat, let alone many bats that would nessesitate a rack.")
+        self.thermostat = Selectable(pos=(180,380), name="Thermostat", image=pygame.image.load("graphics/thermostat.png"), examine="Joms Sr doesn't let me mess with our thermostat at home not since the incident.") # TODO change to NPC
+
         # Global selectables container
         self.global_selectables = [self.bag, self.settings, self.portrait]
 
         # NPCs
-        self.testMan = NPC(pos=(400,300), name="Test Man", image=pygame.image.load("graphics/testman.png"), examine="Who the fuck is this?", dialogTree=self.dialogTrees["testManDialog"])
         self.phoneWave = NPC(pos=(170,129), name="PhoneWave", image=pygame.image.load("graphics/phonewave.png"), examine="It's the PhoneWave (Name Subject To Change)", dialogTree=self.dialogTrees["phoneWaveDialog"])
         self.keypad = NPC(pos=(500,330), name="Emergancy Keypad", image=pygame.image.load("graphics/keypad.png"), examine="How does this help in the event of an emergancy?", dialogTree=self.dialogTrees["keypadDialog"])
         self.moms = NPC(pos=(400,300), name="Moms", image=pygame.image.load("graphics/moms.png"), examine="It's Momma Joms, Moms!", dialogTree=self.dialogTrees["momsDialog"])
+        self.momsPast = NPC(pos=(400,300), name="Moms", image=pygame.image.load("graphics/momsPast.png"), examine="It's Momma Joms, Moms!", dialogTree=self.dialogTrees["momsDialog"])
+        self.jomsSr = NPC(pos=(800,300), name="Joms Sr.", image=pygame.image.load("graphics/jomsSr.png"), examine="It's my dad, Joms Sr!", dialogTree=self.dialogTrees["jomsSrDialog"])
+        self.jomsSrPast = NPC(pos=(800,300), name="Joms Sr.", image=pygame.image.load("graphics/jomsSrPast.png"), examine="It's my dad, Joms Sr!", dialogTree=self.dialogTrees["jomsSrDialog"])
         self.kusoro = NPC(pos=(0,220), name="Hastily Drawn Axolotl Professor", image=pygame.image.load("graphics/kusoro.png"), examine="It's my teacher, Hastily Drawn Axolotl Professor.", dialogTree=self.dialogTrees["quizDialog"])
+        self.nodja = Nodja(pos=(365,300), name="Suspicious Inventor", image=pygame.image.load("graphics/nodja.png"), examine="Suspicious blue man hanging out in the bathroom", dialogTree=self.dialogTrees["inventorDialog"])
 
         # Rooms
-        self.bedroom = Room(name="bedroom", bg=pygame.image.load("graphics/Bedroom.png"), selectables=[self.computer, self.bed, self.testMan], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="livingRoom", name="Go to Living Room")])
-        self.pastBedroom = Room(name="bedroom", bg=pygame.image.load("graphics/bedroombgPast.png"), selectables=[self.computer, self.bedPast], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="pastLivingRoom", name="Go to Living Room")])
+        self.bedroom = Room(name="bedroom", bg=pygame.image.load("graphics/Bedroom.png"), selectables=[self.computer, self.bed], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="livingRoom", name="Go to Living Room")])
+        self.pastBedroom = Room(name="bedroom", bg=pygame.image.load("graphics/bedroombgPast.png"), selectables=[self.computer, self.bedPast, self.jomsSrPast], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="pastLivingRoom", name="Go to Living Room")])
         self.livingRoom = Room(
             name="livingRoom",
             bg=pygame.image.load("graphics/livingroom.png"),
-            selectables=[self.moms],
+            selectables=[self.moms, self.jomsSr],
             exits=[
                 Exit(rect=pygame.Rect(155, 160, 150, 300), newLoc="bedroom", name="Go to Bedroom"),
                 Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="garden", name="Go Outside"),
@@ -444,7 +472,7 @@ class Assets(object):
         self.pastLivingRoom = Room(
             name="pastLivingRoom",
             bg=pygame.image.load("graphics/livingroomPast.png"),
-            selectables=[],
+            selectables=[self.momsPast],
             exits=[
                 Exit(rect=pygame.Rect(155, 160, 150, 300), newLoc="pastBedroom", name="Go to Bedroom"),
                 Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="pastGarden", name="Go Outside"),
@@ -476,12 +504,12 @@ class Assets(object):
                 Exit(rect=pygame.Rect(1150, 170, 300, 600), newLoc="townSquare", name="Go to Town"),
                 Exit(rect=pygame.Rect(25, 170, 210, 400), newLoc="classroom", name="Go to Classroom"),
                 Exit(rect=pygame.Rect(700, 180, 175, 400), newLoc="boysBathroom", name="Got to Boy's Bathroom"),
-                BathroomExit(rect=pygame.Rect(920, 180, 175, 400), newLoc="townSquare", name="Got to Girl's Bathroom"), # TODO Fix this
+                BathroomExit(rect=pygame.Rect(920, 180, 175, 400), newLoc="girlsBathroom", name="Got to Girl's Bathroom"),
             ],
         )
         self.classroom = Room(name="classroom", bg=pygame.image.load("graphics/classroom.png"), selectables=[self.kusoro], exits=[Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="school", name="Go to Hallway")])
-        self.boysBathroom = Room(name="boysBathroom", bg=pygame.image.load("graphics/boysBathroom.png"), selectables=[], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")])
-        self.girlsBathroom = Room(name="girlsBathroom", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")])
+        self.boysBathroom = Room(name="boysBathroom", bg=pygame.image.load("graphics/boysBathroom.png"), selectables=[self.nodja], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")])
+        self.girlsBathroom = Room(name="girlsBathroom", bg=pygame.image.load("graphics/girlsBathroom.png"), selectables=[self.sprinkler1, self.sprinkler2, self.batRack, self.thermostat], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")])
         self.trainStation = Room(name="trainStation", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "moncton"])
         self.bar = Room(name="bar", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "bar"])
         self.fightClub = Room(name="fightClub", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "bar"])
@@ -513,7 +541,7 @@ class Assets(object):
 
         # Other stuff
         # TODO make this a real image
-        self.inv = pygame.image.load("graphics/openInv.png")
+        self.inv =  pygame.transform.scale(pygame.image.load("graphics/openInv.png"), (1280,720))
         self.codeGeassShirley = pygame.transform.scale(pygame.image.load("graphics/shirley.webp"), (300,200))
 
         self.imageLookup = {
@@ -580,6 +608,8 @@ def setTime(state, assets):
     if input == "10" or input == "10:00" or input == "1000":
         keypadDialog["explain"]["next"] = {"1": "sprinklers"}
         keypadDialog["start"]["next"] = {"1": "leave"}
+        assets.sprinkler1.image = pygame.image.load("graphics/sprinklersOn.png")
+        assets.sprinkler2.image = pygame.image.load("graphics/sprinklersOn.png")
         # TODO add sprinklers on here
     elif input == "730" or input == "7:30":
         keypadDialog["explain"]["next"] = {"1": "730"}
@@ -657,15 +687,15 @@ def openInventory(state, assets):
             screen.blit(selectable.image, selectable.pos)
 
         # Draw Items
-        x = 250
-        y = 200
+        x = 450
+        y = 260
         for item in state.currInventory:
             screen.blit(item.image, (x, y))
             item.pos = (x, y)
-            x += 75
-            if x >= 500:
-                x = 250
-                y += 75
+            x += 125
+            if x >= 875:
+                x = 450
+                y += 125
 
         # Update hoverText to whatever the mouse is hovering over
         state = checkHoverText([assets.global_selectables, state.currInventory], state=state)

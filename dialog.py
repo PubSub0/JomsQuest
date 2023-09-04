@@ -454,3 +454,37 @@ momsDialog = {
         "next": None,
     },
 }
+
+jomsSrDialog = {
+    "start": {
+        "text": "How are you doing sport?",
+        "options": {
+            "2": "Leave",
+        },
+        "next": {
+            "2": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+inventorDialog = {
+    "start": {
+        "text": "Hello",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
