@@ -482,6 +482,137 @@ inventorDialog = {
             "1": "leave",
         },
     },
+    "freeze": {
+        "text": "I have just the thing. It's the Portable Heater (Fuel not Included)! Just fill it up with some low-octain fuel and flip the switch.",
+        "options": {
+            "1": "Where am I supposed to get fuel?",
+            "2": "Thanks!",
+        },
+        "next": {
+            "1": "explainFuel",
+            "2": "leave",
+        },
+        "events": ["giveHeater"],
+    },
+    "explainFuel": {
+        "text": "It's the Portable Heater (Fuel not Included) not the Portable Heater (Fuel Included). Figure it out youself.",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+trainDialog = {
+    "start": {
+        "text": "Hello",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+karuDialog = {
+    "start": {
+        "text": "Hello",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+frozenKaruDialog = {
+    "start": {
+        "text": "So... C-C-Cold... Please... Help...",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+fireKaruDialog = {
+    "start": {
+        "text": "Hello",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+thermostatDialog = {
+    "start": {
+        "text": "There's a thermostat on the wall. It says the current temperature is 74°F.",
+        "options": {
+            "1": "Increase Temperature",
+            "2": "Decrease Temperature",
+            "3": "Leave",
+        },
+        "next": {
+            "1": "increase",
+            "2": "decrease",
+            "3": "leave",
+        },
+    },
+    "increase": {
+        "text": "You increase the room's temperature to 75°F. You quickly realize this is too hot and quickly set the temperature back to 74°F.",
+        "options": {
+            "2": "Decrease Temperature",
+            "3": "Leave",
+        },
+        "next": {
+            "2": "decrease",
+            "3": "leave",
+        },
+    },
+    "decrease": {
+        "text": "You set the room's temperature to 73°F. The sudden arctic gust freezes the thermostat control mechanism solid, rendering it inoperable.",
+        "options": {
+            "1": "leave",
+        },
+        "next": {
+            "1": "leave",
+        },
+        "events": ["freezeRoom"]
+    },
     "leave": {
         "text": "",
         "options": {},
