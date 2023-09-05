@@ -12,8 +12,9 @@ pygame.display.set_caption("Joms Quest IV: The Search for a Better Subtitle (Ver
 clock = pygame.time.Clock()
 
 # Setup for font outlining
+fontSize = 32
 pygame.font.init()
-font = pygame.font.SysFont(None, 32)
+font = pygame.font.SysFont(None, fontSize)
 white = (255, 255, 255)
 black = (0, 0, 0)
 yellow = (255, 255, 0)
@@ -78,6 +79,15 @@ def splitString(text, max_length=60):
     
     return lines
 
+# Prints state.dialog and state.hoverText
+def printText(text, x, y):
+    currTextSplit = splitString(text)
+    for i, line in enumerate(currTextSplit):
+        renderDialog = render(line, font)
+        yOff = y - ((len(currTextSplit)-1-i)*fontSize)
+        screen.blit(renderDialog, renderDialog.get_rect(center = (x, yOff)))      
+
+
 ### Functions which run stuff
 # Quick function to update the current state of things
 # TODO maybe move dialog and hoverText to state?
@@ -94,10 +104,8 @@ def drawEverything(state, assets):
         screen.blit(selectable.image, selectable.pos)
 
     # Print out the current texts.
-    renderDialog = render(state.dialog, font)
-    renderHover = render(state.hoverText, font)
-    screen.blit(renderDialog, renderDialog.get_rect(center = (640, 600)))
-    screen.blit(renderHover, renderHover.get_rect(center = (640, 100)))
+    printText(state.dialog, 640, 600)
+    printText(state.hoverText, 640, 100)
 
 # Gives you the current hovertext
 # TODO maybe move hovertext to state?
@@ -129,14 +137,8 @@ def startDialog(state, assets, x=640, y=550, fontSize=32):
         drawEverything(state=state, assets=assets)
 
         # Display Response
-        currText = state.currDialogTree[currNode]["text"]
-
-        # currTextSplit = currText.split('\n')
-        currTextSplit = splitString(currText)
-        for i, line in enumerate(currTextSplit):
-            renderDialog = render(line, font)
-            yOff = y - ((len(currTextSplit)-1-i)*fontSize)
-            screen.blit(renderDialog, renderDialog.get_rect(center = (x, yOff)))           
+        currText = state.currDialogTree[currNode]["text"]    
+        printText(currText, x, y)
 
         # Display options
         options = state.currDialogTree[currNode]["options"]
@@ -168,7 +170,7 @@ def startDialog(state, assets, x=640, y=550, fontSize=32):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not state.holdClicks:
                 mousePos = pygame.mouse.get_pos()
                 for optionKey, optionRect in currOptions.items():
                     if optionRect.collidepoint(mousePos):
@@ -238,6 +240,25 @@ class NPC(Selectable):
         state.dialog = "They don't want that."
         return (state, assets)
 
+class Train(NPC):
+    def use(self, state, assets):
+        state.holdClicks = True
+        if state.ticketGiven:
+            state.currRoom = assets.townSquare # TODO change to moncton
+            return (state, assets)
+        else:
+            return super().use(state, assets)
+
+    def useWith(self, state, assets):
+        state.holdClicks = True
+        if state.selectedItem == assets.trainTicket:
+            state.dialog = "(You give Choo Choo Charon the ticket.) Next stop, Iraq! Hop onboard!"
+            state.ticketGiven = True
+            state.currInventory.remove(state.selectedItem)
+        else:
+            return super().useWith(state, assets)
+        return (state, assets)
+
 class PastMoms(NPC):
     def useWith(self, state, assets):
         if state.selectedItem == assets.greatVegetables:
@@ -272,6 +293,8 @@ class Nodja(NPC):
             state.currInventory.remove(assets.microwaveItem)
             state.currInventory.append(assets.phoneWaveItem)
             state.dialog = "A broken microwave huh? I can fix this and make a few improvements."
+        else:
+            return super().useWith(state, assets)
         return (state, assets)
 
 # Base class for exits
@@ -345,7 +368,7 @@ class Pickupable(Selectable):
         self.invItem = invItem
 
     def use(self, state, assets):
-        state.dialog = f"You took the {self.name}"
+        state.dialog = f"You took the Baseball Bat"
         state.currInventory.append(self.invItem)
         state.currRoom.selectables.remove(self)
         return (state, assets)
@@ -365,6 +388,7 @@ class Microwave(Pickupable):
 class BatRack(Pickupable):
     def use(self, state, assets):
         state, assets = super().use(state, assets)
+        state.holdClicks = True
         state.currRoom.selectables.append(assets.batRackEmpty)
         return(state, assets)
 
@@ -468,6 +492,7 @@ class State(object):
         self.hoverText = ""
         self.currDialogTree = assets.dialogTrees["mainMenu"]
         self.currNode = "start"
+        self.holdClicks = False
         # TODO change to main menu room
         self.currRoom = assets.bedroom
         # self.currInventory = []
@@ -477,6 +502,7 @@ class State(object):
         self.karuOnFire = False
         self.isGirl = False
         self.drinkInFridge = True # False
+        self.ticketGiven = False
 
 
 # Container for all the instances of things the game uses. Inefficient but fuck it.
@@ -548,6 +574,7 @@ class Assets(object):
         self.batRack = BatRack(pos=(1050,550), invItem=self.batItem, name="Bat Rack", image=pygame.image.load("graphics/batRack.png"), examine="A bat rack, it's a rack for bats, a bat rack.")
         self.batRackEmpty = Selectable(pos=(1050,550), name="Bat Rack", image=pygame.image.load("graphics/batRackEmpty.png"), examine="I don't even own a bat, let alone many bats that would nessesitate a rack.")
         self.trashCan = TrashCan(pos=(170,400), name="Trash Can", image=pygame.image.load("graphics/trashCan.png"), examine="A dirty trashcan with a bag of uneaten popcorn ontop.")
+        self.sink = Selectable(pos=(203,305), name="Sink", image=pygame.image.load("graphics/sink.png"), examine="A dirty sink.", useTxt="I don't need to pee.")
 
         # Global selectables container
         self.global_selectables = [self.bag, self.settings, self.portrait]
@@ -561,7 +588,7 @@ class Assets(object):
         self.jomsSrPast = NPC(pos=(800,300), name="Joms Sr.", image=pygame.image.load("graphics/jomsSrPast.png"), examine="It's my dad, Joms Sr!", dialogTree=self.dialogTrees["jomsSrDialog"])
         self.kusoro = NPC(pos=(0,220), name="Hastily Drawn Axolotl Professor", image=pygame.image.load("graphics/kusoro.png"), examine="It's my teacher, Hastily Drawn Axolotl Professor.", dialogTree=self.dialogTrees["quizDialog"])
         self.nodja = Nodja(pos=(365,300), name="Suspicious Inventor", image=pygame.image.load("graphics/nodja.png"), examine="Suspicious blue man hanging out in the bathroom", dialogTree=self.dialogTrees["inventorDialog"])
-        self.train = NPC(pos=(500,0), name="Choo Choo Charon", image=pygame.image.load("graphics/train.png"), examine="Hop aboard the Maroon Vista!", dialogTree=self.dialogTrees["trainDialog"])
+        self.train = Train(pos=(500,0), name="Choo Choo Charon", image=pygame.image.load("graphics/train.png"), examine="Hop aboard the Maroon Vista!", dialogTree=self.dialogTrees["trainDialog"])
         fountainOnImg = pygame.transform.scale(pygame.image.load("graphics/Fountain_On.png"), (400,333))
         fountainIceImg = pygame.transform.scale(pygame.image.load("graphics/Fountain_Ice.png"), (400,333))
         fountainFireImg = pygame.transform.scale(pygame.image.load("graphics/Fountain_Fire.png"), (400,333))
@@ -626,7 +653,7 @@ class Assets(object):
             ],
         )
         self.classroom = Room(name="classroom", bg=pygame.image.load("graphics/classroom.png"), selectables=[self.kusoro], exits=[Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="school", name="Go to Hallway")])
-        self.boysBathroom = Room(name="boysBathroom", bg=pygame.image.load("graphics/boysBathroom.png"), selectables=[self.nodja], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")])
+        self.boysBathroom = Room(name="boysBathroom", bg=pygame.image.load("graphics/boysBathroom.png"), selectables=[self.nodja, self.sink], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")])
         self.girlsBathroom = Room(name="girlsBathroom", bg=pygame.image.load("graphics/girlsBathroom.png"), selectables=[self.sprinkler1, self.sprinkler2, self.batRack, self.thermostat, self.karu], exits=[Exit(rect=pygame.Rect(0,160,160,500), newLoc="school", name="Go to Hallway")])
         self.trainStation = Room(name="trainStation", bg=pygame.image.load("graphics/trainStation.png"), selectables=[self.trashCan, self.train], exits=[Exit(rect=pygame.Rect(0, 620, 1280, 100), newLoc="townSquare", name="Go to Town")])
         self.bar = Room(name="bar", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "bar"])
@@ -703,6 +730,8 @@ def scoreQuiz(state, assets):
         assets.dialogTrees["quizDialog"]["start"]["text"] = "Go on, enjoy the school trip."
         assets.dialogTrees["quizDialog"]["start"]["options"] = {"1": "Leave"}
         assets.dialogTrees["quizDialog"]["start"]["next"] = {"1": "leave"}
+    else:
+        assets.dialogTrees["quizDialog"]["results"]["text"] = f"({state.examScore+1}/6) You did not pass the exam. Maybe try applying youself next time."
     state.currDialogTree = assets.dialogTrees["quizDialog"]
     return (state, assets)
 
@@ -777,6 +806,8 @@ def openInventory(state, assets):
     drawEverything(state=state, assets=assets)
 
     while True:
+        # Reset Hold Clicks as to not overlap
+        state.holdClicks = False
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -789,7 +820,7 @@ def openInventory(state, assets):
                     state.selectedItem = None
                 # Check if selected a global selectable
                 for selectable in assets.global_selectables:
-                    if selectable.get_rect().collidepoint(x,y):
+                    if selectable.get_rect().collidepoint(x,y) and not state.holdClicks:
                         if event.button == 3:
                             state, assets = selectable.examine(state, assets)
                         elif event.button == 1:
@@ -838,10 +869,8 @@ def openInventory(state, assets):
         state = checkHoverText([assets.global_selectables, state.currInventory], state=state)
 
         # Print out the current texts.
-        renderDialog = render(state.dialog, font)
-        renderHover = render(state.hoverText, font)
-        screen.blit(renderDialog, renderDialog.get_rect(center = (640, 600)))
-        screen.blit(renderHover, renderHover.get_rect(center = (640, 100)))
+        printText(state.dialog, 640, 600)
+        printText(state.hoverText, 640, 100)
 
         pygame.display.flip()
         # 60 FPS
@@ -882,8 +911,7 @@ def essayPrompt(state, assets, text):
         screen.blit(text_surface, (input_rect.x + 5, input_rect.y + 5))
         pygame.draw.rect(screen, text_color, input_rect, 2)
 
-        renderDialog = render(text, font)
-        screen.blit(renderDialog, renderDialog.get_rect(center = (640, 550)))
+        printText(text, 640, 550)
 
         pygame.display.flip()
         clock.tick(60)
@@ -899,6 +927,7 @@ state, assets = startDialog(state=state, assets=assets)
 
 # Main Gameplay Loop
 while True:
+    state.holdClicks = False
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -909,7 +938,7 @@ while True:
                 state.selectedItem = None
             # Check if selected a global selectable
             for selectable in assets.global_selectables:
-                if selectable.get_rect().collidepoint(x,y):
+                if selectable.get_rect().collidepoint(x,y) and not state.holdClicks:
                     if event.button == 3:
                         state, assets = selectable.examine(state, assets)
                     elif event.button == 1:
@@ -920,7 +949,7 @@ while True:
                             state, assets = selectable.use(state, assets)
             # Check if selected a room selectable
             for selectable in state.currRoom.selectables:
-                if selectable.get_rect().collidepoint(x,y):
+                if selectable.get_rect().collidepoint(x,y) and not state.holdClicks:
                     if event.button == 3:
                         state, assets = selectable.examine(state, assets)
                     elif event.button == 1:
