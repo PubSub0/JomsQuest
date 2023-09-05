@@ -238,6 +238,31 @@ class NPC(Selectable):
         state.dialog = "They don't want that."
         return (state, assets)
 
+class PastMoms(NPC):
+    def useWith(self, state, assets):
+        if state.selectedItem == assets.greatVegetables:
+            state.isGirl = True
+            state.currInventory.remove(assets.greatVegetables)
+            state.dialog = "You feed Moms the GREAT VEGETABLES. You feel different somehow."
+        elif state.selectedItem == assets.chicken:
+            state.isGirl = False
+            state.dialog = "You feed Moms a piece of the Roast Karu. You feel different somhehow."
+        else:
+            return super().useWith(state, assets)
+        return (state, assets)
+
+class FrozenKaru(NPC):
+    def useWith(self, state, assets):
+        if state.selectedItem == assets.heaterFueled:
+            state.dialog = "You attempt to heat up Karu."
+            state.currInventory.remove(state.selectedItem)
+            state.currRoom.selectables.remove(self)
+            state.currRoom.selectables.append(assets.fireKaru)
+            state.karuOnFire = True
+            return (state, assets)
+        else:
+            return super().useWith(state, assets)
+
 class Nodja(NPC):
     def useWith(self, state, assets):
         if state.selectedItem == assets.microwaveItem:
@@ -279,6 +304,39 @@ class Item(Selectable):
         state.dialog = "Those don't do anything together."
         return (state, assets)
 
+class Heater(Item):
+    def useWith(self, state, assets):
+        if state.selectedItem.name == "High-Proof Alchohol":        
+            state.currInventory.remove(self)
+            state.currInventory.append(assets.heaterFueled)
+            state.currInventory.remove(state.selectedItem)
+            state.dialog = "You fuel up the Portable Heater (Fuel not Included) with the High-Proof Alchohol"
+            return (state, assets)
+        else:
+            return super().useWith(state, assets)
+
+class PlotPast(Selectable):
+    def useWith(self, state, assets):
+        if state.selectedItem == assets.popcornEmpty:
+            state.currInventory.remove(state.selectedItem)
+            state.currRoom.selectables.remove(self)
+            state.currRoom.selectables.append(assets.plotPlantedPast)
+            assets.garden.selectables.remove(assets.weedPlot)
+            assets.garden.selectables.append(assets.vegetablesPlot)
+            state.dialog = "You sowed the garden with the popcorn kernels"
+            return (state, assets)
+        else:
+            return super().useWith(state, assets)
+
+class VegetablesPlot(Selectable):
+    def use(self, state, assets):
+        if assets.greatVegetables not in state.currInventory:
+            state.dialog = "GREAT VEGETABLES GREAT VEGETABLES GREAT VEGETABLES GREAT VEGETABLES GREAT VEGETABLES GREAT VEGETABLES GREAT VEGETABLES"
+            state.currInventory.append(assets.greatVegetables)
+        else:
+            state.dialog = "GREAT VEGETABLES!"
+        return state, assets
+
 class Pickupable(Selectable):
     def __init__(self, pos, invItem, name="", image=None, examine="", useTxt="I can't use that"):
         super().__init__(pos, name, image, examine, useTxt)
@@ -288,6 +346,12 @@ class Pickupable(Selectable):
         state.dialog = f"You took the {self.name}"
         state.currInventory.append(self.invItem)
         state.currRoom.selectables.remove(self)
+        return (state, assets)
+
+class ScorchedFountain(Pickupable):
+    def use(self, state, assets):
+        state, assets = super().use(state,assets)
+        state.currRoom.selectables.append(assets.scorchedFountain)
         return (state, assets)
 
 class Microwave(Pickupable):
@@ -322,6 +386,25 @@ class TrashCan(Selectable):
         else:
             state.dialog = "You rummage through the trash and pick up a handful of Dirty Popcorn."
             state.currInventory.append(assets.popcorn)
+        return (state, assets)
+
+class Fridge(Selectable):
+    def use(self, state, assets):
+        if state.drinkInFridge and state.currRoom == assets.kitchen:
+            state.currInventory.append(assets.highProofDrink)
+            state.drinkInFridge = False
+            state.dialog = "You take the High-Proof Alchohol from the fridge."
+            return (state, assets)
+        else:
+            return super().use(state, assets)
+
+    def useWith(self, state, assets):
+        if state.currRoom == assets.pastKitchen and state.selectedItem.name == "Non-Alchoholic Drink":
+            state.drinkInFridge = True
+            state.currInventory.remove(state.selectedItem)
+            state.dialog = "You put the Non-Alchoholic Drink into the fridge."
+        else:
+            return super().useWith(state, assets)
         return (state, assets)
 
 class Socket(Selectable):
@@ -385,11 +468,13 @@ class State(object):
         self.currNode = "start"
         # TODO change to main menu room
         self.currRoom = assets.bedroom
-        self.currInventory = []
+        # self.currInventory = []
+        self.currInventory = [assets.popcornEmpty]
         self.selectedItem = None
         self.examScore = 0
-        self.karuOnFire = True # False
-        self.isGirl = True # TODO False
+        self.karuOnFire = False
+        self.isGirl = False
+        self.drinkInFridge = True # False
 
 
 # Container for all the instances of things the game uses. Inefficient but fuck it.
@@ -435,6 +520,16 @@ class Assets(object):
         chickenItem = pygame.transform.scale(pygame.image.load("graphics/Karu_Cooked.png"), (100,100))
         self.chicken = Item(pos=(0,0), name="Roasted Karu", image=chickenItem, examine="Roasted Karu, cooked to perfection!")
 
+        self.highProofDrink = Item((0,0), name="High-Proof Alchohol", image=pygame.image.load("graphics/bottle.png"), examine="I don't think I'm old enough to have this.")
+        self.drink = Item((0,0), name="Non-Alchoholic Drink", image=pygame.image.load("graphics/bottle.png"), examine="A delicious non-alchoholic beverage.")
+
+        self.heater = Heater((0,0), name="Portable Heater (Fuel Not Included)", image=pygame.image.load("graphics/heater.png"), examine="This is useless without fuel.")
+        self.heaterFueled = Item((0,0), name="Portable Heater (Fuel Included)", image=pygame.image.load("graphics/heaterFueled.png"), examine="This is useless without fuel.")
+
+        self.popcornEmpty = Item((0,0), name="Popcorn Kernels", image=pygame.image.load("graphics/emptyPopcorn.png"), examine="There's nothing left except for popcorn kernels.")
+
+        self.greatVegetables = Item((0,0), name="GREAT VEGETABLES", image=pygame.image.load("graphics/greatVegetables.png"), examine="GREAT VEGETABLES")
+
         # Selectables
         self.portrait = Joms(pos=(1180,0), name="Joms", image=pygame.image.load("graphics/Joms.jpg"), examine="It's me, Joms!", useTxt="Moms told me I shouldn't touch myself.")
         self.bag = Bag(pos=(1080,0), name="Open Inventory", image=pygame.image.load("graphics/bag.png"), examine="It's my bag.")
@@ -443,13 +538,14 @@ class Assets(object):
         self.bed = Selectable(pos=(0,330), name="Bed", image=pygame.image.load("graphics/bed.png"), examine="Even though it's a waste of time, I like to make my bed every morning.")
         self.bedPast = Selectable(pos=(0,330), name="Bed", image=pygame.image.load("graphics/bedPast.png"), examine="Looks like Joms Sr also wastes his time making his bed each morning.")
         self.weedPlot = Selectable(pos=(80,435), name="Weed-Filled Garden", image=pygame.image.load("graphics/plotWeeds.png"), examine="No one has weeded this garden in years.")
-        self.plotPast = Selectable(pos=(80,435), name="Weed-Free Garden", image=pygame.image.load("graphics/plotPast.png"), examine="Looks like this was the last time the garden was weeded.")
-        self.vegetablesPlot = Selectable(pos=(80,435), name="GREAT VEGETABLES!", image=pygame.image.load("graphics/plotVegetables.png"), examine="GREAT VEGETABLES!")
+        self.plotPast = PlotPast(pos=(80,435), name="Weed-Free Garden", image=pygame.image.load("graphics/plotPast.png"), examine="Looks like this was the last time the garden was weeded.")
+        self.plotPlantedPast = PlotPast(pos=(80,435), name="Weed-Free Garden", image=pygame.image.load("graphics/pastPlotPlanted.png"), examine="The garden has been planted with popcorn kernels.")
+        self.vegetablesPlot = VegetablesPlot(pos=(80,435), name="GREAT VEGETABLES!", image=pygame.image.load("graphics/plotVegetables.png"), examine="GREAT VEGETABLES!")
         self.brick = Pickupable(pos=(490,318), invItem=self.brickItem, name="Kitchen Brick", image=pygame.image.load("graphics/brick.png"), examine=brickExamine)
         self.oven = Selectable(pos=(173,312), name="Oven", image=pygame.image.load("graphics/oven.png"), examine="Looks like chocolate chip-less chocolate chip cookies are being baked. Delicious!")
         self.ovenPast = Selectable(pos=(173,312), name="Oven", image=pygame.image.load("graphics/oven.png"), examine="Our oven. Looks like Moms is cooking dinner.")
-        self.fridge = Selectable(pos=(891,110), name="Fridge", image=pygame.image.load("graphics/fridge.png"), examine="There's nothing in it except some expired fruit.")
-        self.fridgePast = Selectable(pos=(891,110), name="Fridge", image=pygame.image.load("graphics/fridge.png"), examine="There's nothing in it except some ripe fruit.")
+        self.fridge = Fridge(pos=(891,110), name="Fridge", image=pygame.image.load("graphics/fridge.png"), examine="There's nothing in it except some expired fruit.")
+        self.fridgePast = Fridge(pos=(891,110), name="Fridge", image=pygame.image.load("graphics/fridge.png"), examine="There's nothing in it except some ripe fruit.")
         self.pot = Pot(pos=(190,260), name="Pot", image=pygame.image.load("graphics/pot.png"), examine="A pot of Moms' famous unsalted minced meat.")
         self.microwave = Microwave(pos=(170,129), invItem=self.microwaveItem, name="Microwave", image=pygame.image.load("graphics/microwave.png"), examine=mwExamine)
         self.socket = Socket(pos=(250,145), name="Electrical Outlet", image=pygame.image.load("graphics/socket.png"), examine="An electrical outlet.")
@@ -468,7 +564,7 @@ class Assets(object):
         self.phoneWave = NPC(pos=(170,129), name="PhoneWave", image=pygame.image.load("graphics/phonewave.png"), examine="It's the PhoneWave (Name Subject To Change)", dialogTree=self.dialogTrees["phoneWaveDialog"])
         self.keypad = NPC(pos=(500,330), name="Emergancy Keypad", image=pygame.image.load("graphics/keypad.png"), examine="How does this help in the event of an emergancy?", dialogTree=self.dialogTrees["keypadDialog"])
         self.moms = NPC(pos=(400,300), name="Moms", image=pygame.image.load("graphics/moms.png"), examine="It's Momma Joms, Moms!", dialogTree=self.dialogTrees["momsDialog"])
-        self.momsPast = NPC(pos=(400,300), name="Moms", image=pygame.image.load("graphics/momsPast.png"), examine="It's Momma Joms, Moms!", dialogTree=self.dialogTrees["momsDialog"])
+        self.momsPast = PastMoms(pos=(400,300), name="Moms", image=pygame.image.load("graphics/momsPast.png"), examine="It's Momma Joms, Moms!", dialogTree=self.dialogTrees["momsDialog"])
         self.jomsSr = NPC(pos=(800,300), name="Joms Sr.", image=pygame.image.load("graphics/jomsSr.png"), examine="It's my dad, Joms Sr!", dialogTree=self.dialogTrees["jomsSrDialog"])
         self.jomsSrPast = NPC(pos=(800,300), name="Joms Sr.", image=pygame.image.load("graphics/jomsSrPast.png"), examine="It's my dad, Joms Sr!", dialogTree=self.dialogTrees["jomsSrDialog"])
         self.kusoro = NPC(pos=(0,220), name="Hastily Drawn Axolotl Professor", image=pygame.image.load("graphics/kusoro.png"), examine="It's my teacher, Hastily Drawn Axolotl Professor.", dialogTree=self.dialogTrees["quizDialog"])
@@ -480,10 +576,10 @@ class Assets(object):
         fountainChickenImg = pygame.transform.scale(pygame.image.load("graphics/Fountain_Chicken.png"), (400,333))
         fountainScorchImg = pygame.transform.scale(pygame.image.load("graphics/Fountain_Scorched.png"), (400,333))
         self.karu = NPC(pos=(500,300), name="Karu", image=fountainOnImg, examine="It's Karu swimming in the fountain.", dialogTree=self.dialogTrees["karuDialog"])
-        self.frozenKaru = NPC(pos=(500,300), name="Frozen Karu", image=fountainIceImg, examine="It's Karu frozen solid in the fountain.", dialogTree=self.dialogTrees["frozenKaruDialog"])
+        self.frozenKaru = FrozenKaru(pos=(500,300), name="Frozen Karu", image=fountainIceImg, examine="It's Karu frozen solid in the fountain.", dialogTree=self.dialogTrees["frozenKaruDialog"])
         self.fireKaru = NPC(pos=(500,300), name="Flaming Karu", image=fountainFireImg, examine="Damn, Karu's looking hot.", dialogTree=self.dialogTrees["fireKaruDialog"])
-        self.chickenKaru = Selectable(pos=(500,300), name="Cooked Karu", image=fountainChickenImg, examine="I may have been slightly too late turning on the sprinklers.")
-        self.scorchedFountain = Selectable(pos=(500,300), name="Scorched", image=fountainScorchImg, examine="It's a fountain, slightly scorched.")
+        self.chickenKaru = ScorchedFountain(pos=(500,300), invItem=self.chicken, name="Cooked Karu", image=fountainChickenImg, examine="I may have been slightly too late turning on the sprinklers.")
+        self.scorchedFountain = Selectable(pos=(500,300), name="Scorched Fountain", image=fountainScorchImg, examine="It's a fountain, slightly scorched.")
         self.thermostat = NPC(pos=(180,380), name="Thermostat", image=pygame.image.load("graphics/thermostat.png"), examine="Joms Sr doesn't let me mess with our thermostat at home not since the incident.", dialogTree=self.dialogTrees["thermostatDialog"])
 
         # Rooms
@@ -539,7 +635,7 @@ class Assets(object):
         )
         self.classroom = Room(name="classroom", bg=pygame.image.load("graphics/classroom.png"), selectables=[self.kusoro], exits=[Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="school", name="Go to Hallway")])
         self.boysBathroom = Room(name="boysBathroom", bg=pygame.image.load("graphics/boysBathroom.png"), selectables=[self.nodja], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")])
-        self.girlsBathroom = Room(name="girlsBathroom", bg=pygame.image.load("graphics/girlsBathroom.png"), selectables=[self.sprinkler1, self.sprinkler2, self.batRack, self.thermostat, self.karu], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")])
+        self.girlsBathroom = Room(name="girlsBathroom", bg=pygame.image.load("graphics/girlsBathroom.png"), selectables=[self.sprinkler1, self.sprinkler2, self.batRack, self.thermostat, self.karu], exits=[Exit(rect=pygame.Rect(0,160,160,500), newLoc="school", name="Go to Hallway")])
         self.trainStation = Room(name="trainStation", bg=pygame.image.load("graphics/trainStation.png"), selectables=[self.trashCan, self.train], exits=[Exit(rect=pygame.Rect(0, 620, 1280, 100), newLoc="townSquare", name="Go to Town")])
         self.bar = Room(name="bar", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "bar"])
         self.fightClub = Room(name="fightClub", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "bar"])
@@ -635,13 +731,14 @@ def takePopcorn(state, assets):
 
 def setTime(state, assets):
     input = essayPrompt(state, assets, text="Please enter the time you wish to set the clocks to.")
-    if input == "10" or input == "10:00" or input == "1000":
+    if input == "10" or input == "10:00" or input == "1000" or input =="10:00pm":
         keypadDialog["explain"]["next"] = {"1": "sprinklers"}
         keypadDialog["start"]["next"] = {"1": "leave"}
         assets.sprinkler1.image = pygame.image.load("graphics/sprinklersOn.png")
         assets.sprinkler2.image = pygame.image.load("graphics/sprinklersOn.png")
-        # TODO add sprinklers on here
-    elif input == "730" or input == "7:30":
+        assets.girlsBathroom.selectables.remove(assets.fireKaru)
+        assets.girlsBathroom.selectables.append(assets.chickenKaru)
+    elif input == "730" or input == "7:30" or input == "7:30am":
         keypadDialog["explain"]["next"] = {"1": "730"}
     else:
         keypadDialog["explain"]["next"] = {"1": "nothing"}
@@ -658,8 +755,8 @@ def freezeRoom(state, assets):
     return (state, assets)
 
 def giveHeater(state, assets):
-    # state.currInventory.append(assets.heater)
-    inventorDialog["start"]["options"].pop("freeze") 
+    state.currInventory.append(assets.heater)
+    inventorDialog["start"]["options"].pop("freeze")
     return (state, assets)
 
 

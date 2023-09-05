@@ -395,7 +395,7 @@ keypadDialog = {
         },
     },
     "explain": {
-        "text": "Please enter the hour you wish to set the clocks to.",
+        "text": "Please enter the time you wish to set the clocks to.",
         "options": {
             "1": "Continue...",
         },
