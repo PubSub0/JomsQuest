@@ -244,9 +244,11 @@ class PastMoms(NPC):
             state.isGirl = True
             state.currInventory.remove(assets.greatVegetables)
             state.dialog = "You feed Moms the GREAT VEGETABLES. You feel different somehow."
+            assets.portrait.image = pygame.image.load("graphics/JomsGirl.png")
         elif state.selectedItem == assets.chicken:
             state.isGirl = False
-            state.dialog = "You feed Moms a piece of the Roast Karu. You feel different somhehow."
+            state.dialog = "You feed Moms a piece of the Roast Karu. You feel different somehow."
+            assets.portrait.image = pygame.image.load("graphics/Joms.jpg")
         else:
             return super().useWith(state, assets)
         return (state, assets)
@@ -501,33 +503,23 @@ class Assets(object):
         brickExamine = "A kitchen brick. A useful cooking tool and nutritious too."
         brickImage = pygame.transform.scale(pygame.image.load("graphics/brick.png"), (100,50))
         self.brickItem = Item(pos=(0,0), name="Brick", image=brickImage, examine=brickExamine)
-
         mwExamine = "I use this to heat up my Hot Pockets."
         microwaveImage = pygame.transform.scale(pygame.image.load("graphics/microwave.png"), (100,50))
         self.microwaveItem = Item(pos=(0,0), name="Microwave", image=microwaveImage, examine=mwExamine)
-
         pwImage = pygame.transform.scale(pygame.image.load("graphics/phonewave.png"), (100,50))
         self.phoneWaveItem = Item(pos=(0,0), name="PhoneWave (Name Subject To Change)", image=pwImage, examine="It's the PhoneWave (Name Subject to Change)!")
-
         trainTicketImage = pygame.transform.scale(pygame.image.load("graphics/trainTicket.png"), (100,100))
         self.trainTicket = Item(pos=(0,0), name="Train Ticket", image=trainTicketImage, examine="A round trip pass on the Maroon Vista train line.")
-
         batItem = pygame.transform.scale(pygame.image.load("graphics/bat.png"), (100,100))
         self.batItem = Item(pos=(0,0), name="Baseball Bat", image=batItem, examine="I better be careful, this is a deadly weapon.")
-
         self.popcorn = Item(pos=(0,0), name="Suspect Popcorn", image=pygame.image.load("graphics/popcorn.png"), examine="A bag of dirty popcorn I found in the trash.")
-
         chickenItem = pygame.transform.scale(pygame.image.load("graphics/Karu_Cooked.png"), (100,100))
         self.chicken = Item(pos=(0,0), name="Roasted Karu", image=chickenItem, examine="Roasted Karu, cooked to perfection!")
-
         self.highProofDrink = Item((0,0), name="High-Proof Alchohol", image=pygame.image.load("graphics/bottle.png"), examine="I don't think I'm old enough to have this.")
         self.drink = Item((0,0), name="Non-Alchoholic Drink", image=pygame.image.load("graphics/bottle.png"), examine="A delicious non-alchoholic beverage.")
-
         self.heater = Heater((0,0), name="Portable Heater (Fuel Not Included)", image=pygame.image.load("graphics/heater.png"), examine="This is useless without fuel.")
         self.heaterFueled = Item((0,0), name="Portable Heater (Fuel Included)", image=pygame.image.load("graphics/heaterFueled.png"), examine="This is useless without fuel.")
-
         self.popcornEmpty = Item((0,0), name="Popcorn Kernels", image=pygame.image.load("graphics/emptyPopcorn.png"), examine="There's nothing left except for popcorn kernels.")
-
         self.greatVegetables = Item((0,0), name="GREAT VEGETABLES", image=pygame.image.load("graphics/greatVegetables.png"), examine="GREAT VEGETABLES")
 
         # Selectables
