@@ -619,3 +619,85 @@ thermostatDialog = {
         "next": None,
     },
 }
+
+normDialog = {
+    "start": {
+        "text": "Hello",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+computerDialog = {
+    "start": {
+        "text": "You log onto the computer.",
+        "options": {
+            "1": "Twitch",
+            "3": "Discord",
+            "4": "Youtube",
+            "5": "Turn off computer",
+        },
+        "next": {
+            "1": "twitch",
+            "3": "discord",
+            "4": "youtube",
+            "5": "leave",
+        },
+    },
+    "twitch": {
+        "text": "You navigate to twitch.tv/andersonjph. Joe is currently streaming some weeb game and making confused 'OOO??'ing noises. You'll catch the VOD later.",
+        "options": {
+            "3": "Discord",
+            "4": "Youtube",
+            "5": "Turn off Computer",
+        },
+        "next": {
+            "3": "discord",
+            "4": "youtube",
+            "5": "leave",
+        },
+    },
+    "discord": {
+        "text": "You log onto discord and check #dragons-den. Somehow Piss-course returned. You make the wise decision and not get involved.",
+        "options": {
+            "1": "Twitch",
+            "4": "Youtube",
+            "5": "Turn off computer",
+        },
+        "next": {
+            "1": "twitch",
+            "4": "youtube",
+            "5": "leave",
+        },
+    },
+    "youtube": {
+        "text": "You check the recent uploads of your favorite Youtuber Joseph Anderson to see if he uploaded the Witcher 3 video yet. It looks like the Witcher 3 video isn't out yet. Where could it be?",
+        "options": {
+            "1": "Twitch",
+            "3": "Discord",
+            "5": "Turn off computer",
+        },
+        "next": {
+            "1": "twitch",
+            "3": "discord",
+            "5": "leave",
+        },
+    },
+    "victory": {
+        "text": "You check Youtube, and there you see it. The Witcher 3 - Worse Than Breaking Bad by Joeseph Anderson. Total runtime 239 Hours and 53 Minutes.",
+    }, # TODO fix this
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}

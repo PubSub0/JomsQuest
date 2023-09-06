@@ -170,7 +170,7 @@ def startDialog(state, assets, x=640, y=550, fontSize=32):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not state.holdClicks:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mousePos = pygame.mouse.get_pos()
                 for optionKey, optionRect in currOptions.items():
                     if optionRect.collidepoint(mousePos):
@@ -244,7 +244,8 @@ class Train(NPC):
     def use(self, state, assets):
         state.holdClicks = True
         if state.ticketGiven:
-            state.currRoom = assets.townSquare # TODO change to moncton
+            clock.tick(60)
+            state.currRoom = assets.moncton
             return (state, assets)
         else:
             return super().use(state, assets)
@@ -523,6 +524,8 @@ class Assets(object):
             "frozenKaruDialog": frozenKaruDialog,
             "fireKaruDialog": fireKaruDialog,
             "thermostatDialog": thermostatDialog,
+            "normDialog": normDialog,
+            "computerDialog": computerDialog,
         }
 
         # Inventory Items
@@ -552,7 +555,7 @@ class Assets(object):
         self.portrait = Joms(pos=(1180,0), name="Joms", image=pygame.image.load("graphics/Joms.jpg"), examine="It's me, Joms!", useTxt="Moms told me I shouldn't touch myself.")
         self.bag = Bag(pos=(1080,0), name="Open Inventory", image=pygame.image.load("graphics/bag.png"), examine="It's my bag.")
         self.settings = NPC(pos=(0,0), name="Settings", image=pygame.image.load("graphics/settings.png"), examine="A hastily drawn cogwheel", dialogTree=self.dialogTrees["settingsMenu"])
-        self.computer = Selectable(pos=(550,350), name="Use Computer", image=pygame.image.load("graphics/Computer.png"), examine="My old computer I use to browse dank memes.")
+        self.computer = NPC(pos=(550,350), name="Use Computer", image=pygame.image.load("graphics/Computer.png"), examine="My old computer I use to browse dank memes.", dialogTree=self.dialogTrees["computerDialog"])
         self.bed = Selectable(pos=(0,330), name="Bed", image=pygame.image.load("graphics/bed.png"), examine="Even though it's a waste of time, I like to make my bed every morning.")
         self.bedPast = Selectable(pos=(0,330), name="Bed", image=pygame.image.load("graphics/bedPast.png"), examine="Looks like Joms Sr also wastes his time making his bed each morning.")
         self.weedPlot = Selectable(pos=(80,435), name="Weed-Filled Garden", image=pygame.image.load("graphics/plotWeeds.png"), examine="No one has weeded this garden in years.")
@@ -575,7 +578,8 @@ class Assets(object):
         self.batRackEmpty = Selectable(pos=(1050,550), name="Bat Rack", image=pygame.image.load("graphics/batRackEmpty.png"), examine="I don't even own a bat, let alone many bats that would nessesitate a rack.")
         self.trashCan = TrashCan(pos=(170,400), name="Trash Can", image=pygame.image.load("graphics/trashCan.png"), examine="A dirty trashcan with a bag of uneaten popcorn ontop.")
         self.sink = Selectable(pos=(203,305), name="Sink", image=pygame.image.load("graphics/sink.png"), examine="A dirty sink.", useTxt="I don't need to pee.")
-
+        self.stadium = Selectable(pos=(940,310), name="Stadium", image=pygame.image.load("graphics/stadium.png"), examine="The world famous Moncton Stadium", useTxt="There's nothing happening there.")
+        self.cave = Selectable(pos=(0,240), name="Dragon's Den", image=pygame.image.load("graphics/dragonsDen.png"), examine="\"Beware of Dragons\"", useTxt="You hear a terrifying roar and decide not to enter.")
         # Global selectables container
         self.global_selectables = [self.bag, self.settings, self.portrait]
 
@@ -600,6 +604,7 @@ class Assets(object):
         self.chickenKaru = ScorchedFountain(pos=(500,300), invItem=self.chicken, name="Cooked Karu", image=fountainChickenImg, examine="I may have been slightly too late turning on the sprinklers.")
         self.scorchedFountain = Selectable(pos=(500,300), name="Scorched Fountain", image=fountainScorchImg, examine="It's a fountain, slightly scorched.")
         self.thermostat = NPC(pos=(180,380), name="Thermostat", image=pygame.image.load("graphics/thermostat.png"), examine="Joms Sr doesn't let me mess with our thermostat at home not since the incident.", dialogTree=self.dialogTrees["thermostatDialog"])
+        self.normChan = NPC(pos=(430,130), name="Norm-chan", image=pygame.image.load("graphics/normChan.png"), examine="The very handsome owner of this fine establishment.", dialogTree=self.dialogTrees["normDialog"])
 
         # Rooms
         self.bedroom = Room(name="bedroom", bg=pygame.image.load("graphics/Bedroom.png"), selectables=[self.computer, self.bed], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="livingRoom", name="Go to Living Room")])
@@ -640,7 +645,6 @@ class Assets(object):
             ],
             enterEvents=["takePopcorn"],
         )
-        # TODO stuff
         self.school = Room(
             name="school",
             bg=pygame.image.load("graphics/school.png"),
@@ -655,10 +659,19 @@ class Assets(object):
         self.classroom = Room(name="classroom", bg=pygame.image.load("graphics/classroom.png"), selectables=[self.kusoro], exits=[Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="school", name="Go to Hallway")])
         self.boysBathroom = Room(name="boysBathroom", bg=pygame.image.load("graphics/boysBathroom.png"), selectables=[self.nodja, self.sink], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")])
         self.girlsBathroom = Room(name="girlsBathroom", bg=pygame.image.load("graphics/girlsBathroom.png"), selectables=[self.sprinkler1, self.sprinkler2, self.batRack, self.thermostat, self.karu], exits=[Exit(rect=pygame.Rect(0,160,160,500), newLoc="school", name="Go to Hallway")])
-        self.trainStation = Room(name="trainStation", bg=pygame.image.load("graphics/trainStation.png"), selectables=[self.trashCan, self.train], exits=[Exit(rect=pygame.Rect(0, 620, 1280, 100), newLoc="townSquare", name="Go to Town")])
+        self.trainStation = Room(name="trainStation", bg=pygame.image.load("graphics/trainStation.png"), selectables=[self.trashCan, self.train], exits=[Exit(rect=pygame.Rect(0, 650, 1280, 100), newLoc="townSquare", name="Go to Town")])
         self.bar = Room(name="bar", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "bar"])
         self.fightClub = Room(name="fightClub", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "bar"])
-        self.moncton = Room(name="moncton", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=[])
+        self.moncton = Room(
+            name="moncton",
+            bg=pygame.image.load("graphics/moncton.png"),
+            selectables=[self.cave, self.stadium],
+            exits=[
+                Exit(rect=pygame.Rect(440, 300, 110, 100), newLoc="trainStation", name="Go to Jomalia"),
+                Exit(rect=pygame.Rect(635,350,200,160), newLoc="normsPizza", name="Go to Norm's Pizza"),
+            ]
+        )
+        self.normsPizza = Room(name="normsPizza", bg=pygame.image.load("graphics/normsPizza.png"), selectables=[self.normChan], exits=[Exit(rect=pygame.Rect(0, 620, 1280, 100), newLoc="moncton", name="Go to Moncton")])
 
         # LEFT, TOP, WIDTH, HEIGHT
 
@@ -682,6 +695,7 @@ class Assets(object):
             "bar": self.bar,
             "fightClub": self.fightClub,
             "moncton": self.moncton,
+            "normsPizza": self.normsPizza,
         }
 
         # Other stuff
@@ -960,7 +974,7 @@ while True:
                             state, assets = selectable.use(state, assets)
             
             for exit in state.currRoom.exits:
-                if exit.rect.collidepoint(x,y):
+                if exit.rect.collidepoint(x,y) and not state.holdClicks:
                     if event.button == 1:
                         state, assets = exit.enterRoom(state, assets)
 
