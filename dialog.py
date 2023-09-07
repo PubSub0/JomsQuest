@@ -241,7 +241,7 @@ quizDialog = {
             "3": "rightHair",
             "4": "wrongHair",
         },
-        "image": "codeGeassShirley"
+        "image": ("codeGeassShirley",(500,150))
     },
     "wrongHair": {
         "text": "...",
@@ -512,11 +512,37 @@ inventorDialog = {
 
 trainDialog = {
     "start": {
-        "text": "Hello",
+        "text": "Welcome to the Maroon Vista Train Line. Please show your ticket before boarding.",
         "options": {
+            "2": "I don't have a ticket.",
+            "3": "Where does this train line go?",
             "1": "Leave",
         },
         "next": {
+            "2": "then",
+            "3": "iraq",
+            "1": "leave",
+        },
+    },
+    "then": {
+        "text": "Then I don't have to let you on the train.",
+        "options": {
+            "3": "Where does this train line go?",
+            "1": "Leave",
+        },
+        "next": {
+            "3": "iraq",
+            "1": "leave",
+        },
+    },
+    "iraq": {
+        "text": "Iraq",
+        "options": {
+            "2": "I don't have a ticket.",
+            "1": "Leave",
+        },
+        "next": {
+            "2": "then",
             "1": "leave",
         },
     },
@@ -529,7 +555,18 @@ trainDialog = {
 
 karuDialog = {
     "start": {
-        "text": "Hello",
+        "text": "******* PUT IT OUT ****! ****! MOTHER ******* ***** ****! PUT IT OUT!",
+        "options": {
+            "2": "Remember to stop drop and roll!",
+            "1": "Leave",
+        },
+        "next": {
+            "2": "roll",
+            "1": "leave",
+        },
+    },
+    "roll": {
+        "text": "**** YOU ****!",
         "options": {
             "1": "Leave",
         },
@@ -622,7 +659,86 @@ thermostatDialog = {
 
 normDialog = {
     "start": {
-        "text": "Hello",
+        "text": "Welcome to Norm's Pizza eh. How can we serve you today, friend?",
+        "options": {
+            "1": "I would like a large pizza.",
+            "2": "Leave",
+        },
+        "next": {
+            "1": "pizza",
+            "2": "normalDay",
+        },
+    },
+    "pizza": {
+        "text": "What toppings do you want on that?",
+        "options": {
+            "1": "Cheese",
+            "2": "Pepperoni",
+            "3": "Olives",
+            "4": "Pineapple",
+        },
+        "next": {
+            "1": "pay",
+            "2": "pay",
+            "3": "olives",
+            "4": "pineapple",
+        },
+    },
+    "pay": {
+        "text": "That will be 19.99CAD.",
+        "options": {
+            "1": "I don't have any Monopoly money.",
+        },
+        "next": {
+            "1": "no"
+        },
+        "events": ["itemsForPizza"],
+    },
+    "no": {
+        "text": "Why would you order a pizza without money eh? Sore-ry bud, no cash, no pizza.",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "normalDay",
+        },
+    },
+    "deny": {
+        "text": "That's funnier than a moose at a comedy club, that is. Sore-ry bud, no cash, no pizza.",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "normalDay",
+        },
+    },
+    "olives": {
+        "text": "(Norm Chan looks at you with disgust) Sore-ry eh, we don't serve those types of gross toppings. Olives are more disgusting than a poutine with American cheese.",
+        "options": {
+            "1": "Cheese",
+            "2": "Pepperoni",
+            "4": "Pineapple",
+        },
+        "next": {
+            "1": "pay",
+            "2": "pay",
+            "4": "pineapple",
+        },
+    },
+    "pineapple": {
+        "text": "DING DING DING Congratulations, you are the first customer to order the Norm's Pineapple Pizza eh. This one's on the house pal. (You got a Pineapple Pizza)",
+        "options": {
+            "1": "Thanks!",
+        },
+        "next": {
+            "1": "normalDay",
+        },
+        "events": ["givePizza"],
+        "image": ("confetti", (0,0)),
+    },
+
+    "normalDay": {
+        "text": "Have a Norm-al D-eh!",
         "options": {
             "1": "Leave",
         },
@@ -680,7 +796,7 @@ computerDialog = {
         },
     },
     "youtube": {
-        "text": "You check the recent uploads of your favorite Youtuber Joseph Anderson to see if he uploaded the Witcher 3 video yet. It looks like the Witcher 3 video isn't out yet. Where could it be?",
+        "text": "You check the recent uploads of your favorite Youtuber Joseph Anderson to see if he uploaded the Witcher 3 video yet. It looks like the Witcher 3 video has not been released. Where could it be?",
         "options": {
             "1": "Twitch",
             "3": "Discord",
@@ -695,6 +811,90 @@ computerDialog = {
     "victory": {
         "text": "You check Youtube, and there you see it. The Witcher 3 - Worse Than Breaking Bad by Joeseph Anderson. Total runtime 239 Hours and 53 Minutes.",
     }, # TODO fix this
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+bagChanDialog = {
+    "start": {
+        "text": "Ohayo good morning, Joms!",
+        "options": {
+            "1": "I thought you'd be shorter.",
+            "2": "Leave",
+        },
+        "next": {
+            "1": "shorter",
+            "2": "leave",
+            "eat": "eat",
+            "mine": "mine",
+        },
+    },
+    "eat": {
+        "text": "I don't even have time to explain how I don't have time to explain.",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "leave",
+        },
+    },
+    "mine": {
+        "text": "Sorry, I'm just having a rough day. Usually I get my meal from the bar, but they started taking their trash out a day earlier. Times are tough.",
+        "options": {
+            "eat": "How did you even eat that?",
+            "1": "Leave",
+        },
+        "next": {
+            "eat": "eat",
+            "1": "leave",
+        },
+    },
+    "shorter" : {
+        "text": "...sorry to disappoint?",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+bagChanStuffedDialog = {
+    "start": {
+        "text": "The cardboard really adds a nice, chewy texture.",
+        "options": {
+            "2": "Leave",
+        },
+        "next": {
+            "2": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+falzarDialog = {
+    "start": {
+        "text": "Hello",
+        "options": {
+            "2": "Leave",
+        },
+        "next": {
+            "2": "leave",
+        },
+    },
     "leave": {
         "text": "",
         "options": {},

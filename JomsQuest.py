@@ -159,7 +159,7 @@ def startDialog(state, assets, x=640, y=550, fontSize=32):
 
         # TODO make the x,y cords better
         if "image" in state.currDialogTree[currNode]:
-            screen.blit(assets.imageLookup[state.currDialogTree[currNode]["image"]], (500,150))
+            screen.blit(assets.imageLookup[state.currDialogTree[currNode]["image"][0]], state.currDialogTree[currNode]["image"][1])
             pygame.display.update()
 
         pygame.display.update()
@@ -240,6 +240,36 @@ class NPC(Selectable):
         state.dialog = "They don't want that."
         return (state, assets)
 
+class Botseph(NPC):
+    def use(self, state, assets):
+        if assets.falzar in state.currRoom.selectables:
+            state.dialog = "I can't speak to it, the bouncer is in the way."
+            return (state, assets)
+        else:
+            return super().use(state,assets)
+
+class Falzar(NPC):
+    def useWith(self,state,assets):
+        if state.selectedItem == assets.popcorn:
+            state.currRoom.selectables.remove(self)
+            state.currInventory.remove(state.selectedItem)
+            state.currInventory.append(assets.popcornEmpty)
+            state.dialog = "You offer the popcorn to the crocodile who scoops a handful. As they eat the popcorn, its effect is immediate. The crocodile wavers before falling face first onto the floor."
+            assets.kritterSfx.play()
+            return (state, assets)
+        else:
+            return super().useWith(state, assets)
+
+class Jelly(NPC):
+    def useWith(self, state, assets):
+        if state.selectedItem == assets.pizza:
+            state.currRoom.selectables.remove(assets.bagChan)
+            state.currRoom.selectables.append(assets.bagChanFull)
+            state.dialog = "\"You mean it? Don't mind if I do! Been a while since I got one with the box...\" Bagchan devours the pizza, box and all. You could swear you saw a look of terror on Norm's face before the box disappeared under the bag."
+            return (state, assets)
+        else:
+            return super().useWith(state, assets)
+
 class Train(NPC):
     def use(self, state, assets):
         state.holdClicks = True
@@ -311,9 +341,9 @@ class Exit(object):
 
     def enterRoom(self, state, assets):
         state.currRoom = assets.roomLookup[exit.newLoc]
+        state.dialog=""
         for enterEvent in state.currRoom.enterEvents:
             state, assets = eventLookup[enterEvent](state, assets)
-        state.dialog=""
         return (state, assets)
 
 class BathroomExit(Exit):
@@ -323,6 +353,13 @@ class BathroomExit(Exit):
         else:
             state.dialog = "I can't go into the girl's bathroom. I'm a boy!"
             return (state, assets)
+
+class Trapdoor(Exit):
+    def enterRoom(self, state, assets):
+        if assets.falzar in state.currRoom.selectables:
+            state.dialog = "I can't go there, the bouncer is in way."
+            return (state, assets)
+        return super().enterRoom(state, assets)
 
 # Item class specifically for being put into your inventory. Probably doesn't need its own class.
 class Item(Selectable):
@@ -497,13 +534,14 @@ class State(object):
         # TODO change to main menu room
         self.currRoom = assets.bedroom
         # self.currInventory = []
-        self.currInventory = [assets.popcornEmpty]
+        self.currInventory = [assets.popcornEmpty, assets.pizza]
         self.selectedItem = None
         self.examScore = 0
         self.karuOnFire = False
         self.isGirl = False
         self.drinkInFridge = True # False
         self.ticketGiven = False
+        self.checkedItemsForPizza = False
 
 
 # Container for all the instances of things the game uses. Inefficient but fuck it.
@@ -526,6 +564,9 @@ class Assets(object):
             "thermostatDialog": thermostatDialog,
             "normDialog": normDialog,
             "computerDialog": computerDialog,
+            "bagChanDialog": bagChanDialog,
+            "bagChanStuffedDialog": bagChanStuffedDialog,
+            "falzarDialog": falzarDialog,
         }
 
         # Inventory Items
@@ -550,6 +591,8 @@ class Assets(object):
         self.heaterFueled = Item((0,0), name="Portable Heater (Fuel Included)", image=pygame.image.load("graphics/heaterFueled.png"), examine="This is useless without fuel.")
         self.popcornEmpty = Item((0,0), name="Popcorn Kernels", image=pygame.image.load("graphics/emptyPopcorn.png"), examine="There's nothing left except for popcorn kernels.")
         self.greatVegetables = Item((0,0), name="GREAT VEGETABLES", image=pygame.image.load("graphics/greatVegetables.png"), examine="GREAT VEGETABLES")
+        self.pizza = Item((0,0), name="Norm's Pineapple Pizza", image=pygame.image.load("graphics/pizza.png"), examine="Pineapple on Pizza? The perfect balance of sweet and savory!")
+        self.spaceJam = Item((0,0), name="Space Jam DVD", image=pygame.image.load("graphics/spaceJam.png"), examine="A Space Jam DVD with a very low resolution PNG Icon. A Space Jam DVD PNG.")
 
         # Selectables
         self.portrait = Joms(pos=(1180,0), name="Joms", image=pygame.image.load("graphics/Joms.jpg"), examine="It's me, Joms!", useTxt="Moms told me I shouldn't touch myself.")
@@ -605,6 +648,13 @@ class Assets(object):
         self.scorchedFountain = Selectable(pos=(500,300), name="Scorched Fountain", image=fountainScorchImg, examine="It's a fountain, slightly scorched.")
         self.thermostat = NPC(pos=(180,380), name="Thermostat", image=pygame.image.load("graphics/thermostat.png"), examine="Joms Sr doesn't let me mess with our thermostat at home not since the incident.", dialogTree=self.dialogTrees["thermostatDialog"])
         self.normChan = NPC(pos=(430,130), name="Norm-chan", image=pygame.image.load("graphics/normChan.png"), examine="The very handsome owner of this fine establishment.", dialogTree=self.dialogTrees["normDialog"])
+        bagChanImage = pygame.transform.scale(pygame.image.load("graphics/Jelly_Normal.png"), (100,200))
+        bagChanStuffedImage = pygame.transform.scale(pygame.image.load("graphics/Jelly_Stuffed.png"), (100,200))
+        self.bagChan = Jelly(pos=(440,375), name="Jelly", image=bagChanImage, examine="It's world famous streamer/entertainer Jelly", dialogTree=self.dialogTrees["bagChanDialog"])
+        self.bagChanFull = NPC(pos=(440,375), name="Stuffed Jelly", image=bagChanStuffedImage, examine="Jelly's insatiable trash-lust has been satisfied... for now...", dialogTree=self.dialogTrees["bagChanStuffedDialog"])
+        falzarImage = pygame.transform.scale2x(pygame.image.load("graphics/Bouncer_Falzar.png"))
+        self.falzar = Falzar((500,0), name="Crocodile with Style", image=falzarImage, examine="A hostile crocodile with style is blocking the entrance.", dialogTree=self.dialogTrees["falzarDialog"])
+        self.botseph = Botseph((300,110), name="Botseph", image=pygame.image.load("graphics/botseph.png"), examine="The bartender of the very originally named \"Bar\"", dialogTree=self.dialogTrees["falzarDialog"])
 
         # Rooms
         self.bedroom = Room(name="bedroom", bg=pygame.image.load("graphics/Bedroom.png"), selectables=[self.computer, self.bed], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="livingRoom", name="Go to Living Room")])
@@ -636,10 +686,10 @@ class Assets(object):
         self.townSquare = Room(
             name="townSquare",
             bg=pygame.image.load("graphics/townSquare.png"),
-            selectables=[],
+            selectables=[self.bagChan],
             exits=[
                 Exit(rect=pygame.Rect(0, 620, 1280, 100), newLoc="garden", name="Go to Joms' House"),
-                Exit(rect=pygame.Rect(50, 300, 300, 200), newLoc="garden", name="Go to Bar"), # TODO update these to real loc
+                Exit(rect=pygame.Rect(50, 300, 300, 200), newLoc="bar", name="Go to Bar"),
                 Exit(rect=pygame.Rect(920, 305, 350, 190), newLoc="school", name="Go to School"),
                 Exit(rect=pygame.Rect(405, 105, 500, 200), newLoc="trainStation", name="Go to Train Station"),
             ],
@@ -660,8 +710,16 @@ class Assets(object):
         self.boysBathroom = Room(name="boysBathroom", bg=pygame.image.load("graphics/boysBathroom.png"), selectables=[self.nodja, self.sink], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")])
         self.girlsBathroom = Room(name="girlsBathroom", bg=pygame.image.load("graphics/girlsBathroom.png"), selectables=[self.sprinkler1, self.sprinkler2, self.batRack, self.thermostat, self.karu], exits=[Exit(rect=pygame.Rect(0,160,160,500), newLoc="school", name="Go to Hallway")])
         self.trainStation = Room(name="trainStation", bg=pygame.image.load("graphics/trainStation.png"), selectables=[self.trashCan, self.train], exits=[Exit(rect=pygame.Rect(0, 650, 1280, 100), newLoc="townSquare", name="Go to Town")])
-        self.bar = Room(name="bar", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "bar"])
-        self.fightClub = Room(name="fightClub", bg=pygame.image.load("graphics/kitchen.png"), selectables=[], exits=["townSquare", "bar"])
+        self.bar = Room(
+            name="bar",
+            bg=pygame.image.load("graphics/bar.png"),
+            selectables=[self.falzar, self.botseph],
+            exits=[
+                Exit(rect=pygame.Rect(0, 650, 500, 200),newLoc="townSquare", name="Go to Town"),
+                Trapdoor(rect=pygame.Rect(1070, 490, 200, 150),newLoc="fightClub", name="Enter Trapdoor"),
+            ]
+        )
+        self.fightClub = Room(name="fightClub", bg=pygame.image.load("graphics/placeholderBG.png"), selectables=[], exits=[])
         self.moncton = Room(
             name="moncton",
             bg=pygame.image.load("graphics/moncton.png"),
@@ -699,13 +757,18 @@ class Assets(object):
         }
 
         # Other stuff
-        # TODO make this a real image
         self.inv =  pygame.transform.scale(pygame.image.load("graphics/openInv.png"), (1280,720))
         self.codeGeassShirley = pygame.transform.scale(pygame.image.load("graphics/shirley.webp"), (300,200))
+        self.confetti = pygame.image.load("graphics/confetti.png")
 
         self.imageLookup = {
             "codeGeassShirley" : self.codeGeassShirley,
+            "confetti": self.confetti,
         }
+
+        # Sounds
+        self.kritterSfx = pygame.mixer.Sound("Audio/kritter.mp3")
+        #pygame.mixer.music.set_volume(0.5)
 
 # Instance a State and Assets object
 assets = Assets()
@@ -761,7 +824,11 @@ def phoneWaveInput(state, assets):
     return (state, assets)
 
 def takePopcorn(state, assets):
-    # TODO add check for if bagchan is fed and take popcorn
+    if assets.popcorn in state.currInventory and assets.bagChan in state.currRoom.selectables:
+        state.currInventory.remove(assets.popcorn)
+        state.dialog = "Like a feral beast, Jelly's insatiable trash-lust activates and is unable to stop themselves from devouring your popcorn, bag and all."
+        bagChanDialog["start"]["options"]["mine"] = "Hey, that was mine!"
+        bagChanDialog["start"]["options"]["eat"] = "How did you even eat that?"
     return (state, assets)
 
 def setTime(state, assets):
@@ -794,6 +861,23 @@ def giveHeater(state, assets):
     inventorDialog["start"]["options"].pop("freeze")
     return (state, assets)
 
+def itemsForPizza(state, assets):
+    if state.checkedItemsForPizza:
+        return (state, assets)
+    # Fuck it, no one's going to talk to norm, go get a different item, then talk to norm again
+    state.checkedItemsForPizza = True
+    items = 0
+    for item in state.currInventory:
+        if items < 3:
+            normDialog["pay"]["options"][item.name] = f"I'll trade you this {item.name}."
+            normDialog["pay"]["next"][item.name] = "deny"
+        items += 1
+    return (state, assets)
+
+def givePizza(state, assets):
+    state.currInventory.append(assets.pizza)
+    normDialog["start"]["options"].pop("1")
+    return (state, assets)
 
 # Dictionary to map dialog options to functions
 eventLookup = {
@@ -804,6 +888,8 @@ eventLookup = {
     "setTime": setTime,
     "freezeRoom": freezeRoom,
     "giveHeater": giveHeater,
+    "itemsForPizza": itemsForPizza,
+    "givePizza": givePizza,
 
     # Quiz
     "resetQuizScore" : resetQuizScore,
@@ -908,8 +994,6 @@ def essayPrompt(state, assets, text):
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    # ret = input_text
-                    # input_text = ""
                     return input_text
                 elif event.key == pygame.K_BACKSPACE:
                     input_text = input_text[:-1]
