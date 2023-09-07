@@ -257,6 +257,9 @@ class Falzar(NPC):
             state.dialog = "You offer the popcorn to the crocodile who scoops a handful. As they eat the popcorn, its effect is immediate. The crocodile wavers before falling face first onto the floor."
             assets.kritterSfx.play()
             return (state, assets)
+        elif state.selectedItem == assets.pizza:
+            state.dialog = "The crocodile takes one look at the pineapple pizza and is clearly disgusted by the sight."
+            return (state, assets)
         else:
             return super().useWith(state, assets)
 
@@ -265,6 +268,7 @@ class Jelly(NPC):
         if state.selectedItem == assets.pizza:
             state.currRoom.selectables.remove(assets.bagChan)
             state.currRoom.selectables.append(assets.bagChanFull)
+            state.currInventory.remove(state.selectedItem)
             state.dialog = "\"You mean it? Don't mind if I do! Been a while since I got one with the box...\" Bagchan devours the pizza, box and all. You could swear you saw a look of terror on Norm's face before the box disappeared under the bag."
             return (state, assets)
         else:
@@ -534,7 +538,7 @@ class State(object):
         # TODO change to main menu room
         self.currRoom = assets.bedroom
         # self.currInventory = []
-        self.currInventory = [assets.popcornEmpty, assets.pizza]
+        self.currInventory = [assets.pizza]
         self.selectedItem = None
         self.examScore = 0
         self.karuOnFire = False

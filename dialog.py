@@ -553,7 +553,7 @@ trainDialog = {
     },
 }
 
-karuDialog = {
+fireKaruDialog = {
     "start": {
         "text": "******* PUT IT OUT ****! ****! MOTHER ******* ***** ****! PUT IT OUT!",
         "options": {
@@ -598,7 +598,7 @@ frozenKaruDialog = {
     },
 }
 
-fireKaruDialog = {
+karuDialog = {
     "start": {
         "text": "Hello",
         "options": {
