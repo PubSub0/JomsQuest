@@ -901,3 +901,156 @@ falzarDialog = {
         "next": None,
     },
 }
+
+beacoiDialog = {
+    "start": {
+        "text": "Welcome to Beacoi's Fight Club.",
+        "options": {
+            "1": "I want to fight!",
+            "2": "Leave",
+        },
+        "next": {
+            "1": "want",
+            "2": "leave",
+        },
+    },
+    "want": {
+        "text": "I like your spirit, but before we get started let me explain the rules of Beacoi's Fight Club first.",
+        "options": {
+            "1": "What are the rules of Beacoi's Fight Club?",
+            "2": "I already know the rules.",
+            "3": "Nevermind I'm too scared."
+        },
+        "next": {
+            "1": "rule1",
+            "2": "fight?",
+            "3": "leave",
+        },
+        "events": ["checkGirl"],
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+    "rule1": {
+        "text": "The first rule of Beacoi's Fight Club: You do not talk about Beacoi's Fight Club. The second rule of Beacoi's Fight Club: You do NOT talk about Beacoi's Fight Club.",
+        "options": {
+            "1": "Continue...",
+        },
+        "next": {
+            "1": "rule3",
+        },
+    },
+    "rule3": {
+        "text": "The third rule of Beacoi's Fight Club: No girls are allowed to fight",
+        "options": {
+            "1": "Pretty sexist Beacoi, why can't girls fight?",
+            "2": "Continue...",
+        },
+        "next": {
+            "1": "girlExplain",
+            "2": "rule4",
+        }, 
+    },
+    "girlExplain": {
+        "text": "Beacoi Ofsnoe believes in equal rights (and left in this case), but the Women's league is on Thursdays.",
+        "options": {
+            "1": "Continue...",
+        },
+        "next": {
+            "1": "rule4",
+        },
+    },
+    "rule4": {
+        "text": "The fourth rule of Beacoi's Fight Club: You have the right to the weapon of your choosing. If you do not have a weapon, you may select one from my personal collection.",
+        "options": {"1": "Continue..."},
+        "next": {"1": "rule5"},
+    },
+    "rule5": {
+        "text": "Final rule of Beacoi's Fight Club: No shirts, no shoes.",
+        "options": {
+            "1": "But Beacoi, you are wearing a shirt.",
+            "2": "I'm ready!",
+        },
+        "next": {
+            "1": "shirt",
+            "2": "fight?",
+        },
+    },
+    "shirt": {
+        "text": "No I'm not.",
+        "options": {"1" : "I'm ready!"},
+        "next": {"1": "fight?"},
+    },
+    "fight?": {
+        "text": "So what do you say? Want to fight?",
+        "options": {
+            "1": "Yes",
+            "2": "No",
+        },
+        "next": {
+            "1": "weapon",
+            "2": "leave",
+        },
+    },
+    "weapon": {
+        "text": "If you didn't bring a weapon with you, select your weapon.",
+        "options": {
+            "1": "Shot Put Ball",
+            "2": "Gun",
+            "3": "Katanna",
+            "4": "Nevermind I'm scared.",
+        },
+        "next": {
+            "1": "shotput",
+            "2": "gun",
+            "3": "katanna",
+            "4": "leave",
+        },
+    },
+    "urAGirl": {
+        "text": "Sorry miss, but girls aren't allowed to fight in Beacoi's Fight Club. Please come back on Thursday for the Women's league.",
+        "options":  {"1": "Leave"},
+        "next": {"1": "leave"},
+    },
+    "shotput": {
+        "text": "You pick up the Shot Put Ball and stand ready. \"BEGIN!\" Shouted Beacoi as he rushed you. You dropped everything you were holding, but since you didn't create an elaborate Rube Goldberg death trap before hand, it was ineffective.",
+        "options": {"1": "Continue..."},
+        "next": {"1": "lose"},
+    },
+    "gun": {
+        "text": "You pick up the Gun and stand ready. \"BEGIN!\" Shouted Beacoi as he rushed you. You take and and fire dead-center on your target. Beacoi effortlessly deflect the bullet with his knife-like talons.",
+        "options": {"1": "Continue..."},
+        "next": {"1": "lose"},
+    },
+    "katanna": {
+        "text": "You pick up the Katanna and stand ready. \"BEGIN!\" Shouted Beacoi as he rushed you. As you attempt to parry Beacoi's slashes, the Glorious Nippon Steel folded over a thousand times shatters into a thousand pieces.",
+        "options": {"1": "Continue..."},
+        "next": {"1": "lose"},
+    },
+    "lose": {
+        "text": "You collapsed and all goes black. You wake up back in your room, bruised and bloodied.",
+        "options": {"1": "Ow..."},
+        "next": {"1": "leave"},
+        "events": ["loseFight"],
+    },
+}
+
+beacoiWinDialog = {
+    "start": {
+        "text": "Hello",
+        "options": {
+            "2": "Leave",
+        },
+        "next": {
+            "2": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
