@@ -253,7 +253,7 @@ class JomsSrPast(NPC):
 
 class Beacoi(NPC):
     def useWith(self, state, assets):
-        if state.selectedItem == assets.batItem:
+        if state.selectedItem == assets.batItem and not state.isGirl:
             state.currDialogTree = assets.dialogTrees["beacoiWinDialog"]
             startDialog(state, assets)
             state.currInventory.append(assets.spaceJam)
@@ -491,16 +491,16 @@ class Fridge(Selectable):
         if state.drinkInFridge and state.currRoom == assets.kitchen:
             state.currInventory.append(assets.highProofDrink)
             state.drinkInFridge = False
-            state.dialog = "You take the High-Proof Alchohol from the fridge."
+            state.dialog = "Looks like the juice fermented into alchohol. (You Recieved High-Proof Alchohol)"
             return (state, assets)
         else:
             return super().use(state, assets)
 
     def useWith(self, state, assets):
-        if state.currRoom == assets.pastKitchen and state.selectedItem.name == "Non-Alchoholic Drink":
+        if state.currRoom == assets.pastKitchen and state.selectedItem == assets.juice:
             state.drinkInFridge = True
             state.currInventory.remove(state.selectedItem)
-            state.dialog = "You put the Non-Alchoholic Drink into the fridge."
+            state.dialog = "You put the Juice into the fridge."
         else:
             return super().useWith(state, assets)
         return (state, assets)
@@ -567,13 +567,12 @@ class State(object):
         self.holdClicks = False
         # TODO change to main menu room
         self.currRoom = assets.bedroom
-        # self.currInventory = []
-        self.currInventory = [assets.pizza, assets.batItem]
+        self.currInventory = []
         self.selectedItem = None
         self.examScore = 0
         self.karuOnFire = False
         self.isGirl = False
-        self.drinkInFridge = True # False
+        self.drinkInFridge = False
         self.ticketGiven = False
         self.checkedItemsForPizza = False
 
@@ -598,9 +597,11 @@ class Assets(object):
             "thermostatDialog": thermostatDialog,
             "normDialog": normDialog,
             "computerDialog": computerDialog,
+            "pastComputerDialog": pastComputerDialog,
             "bagChanDialog": bagChanDialog,
             "bagChanStuffedDialog": bagChanStuffedDialog,
             "falzarDialog": falzarDialog,
+            "botsephDialog": botsephDialog,
             "beacoiDialog": beacoiDialog,
             "beacoiWinDialog": beacoiWinDialog,
         }
@@ -622,7 +623,7 @@ class Assets(object):
         chickenItem = pygame.transform.scale(pygame.image.load("graphics/Karu_Cooked.png"), (100,100))
         self.chicken = Item(pos=(0,0), name="Roasted Karu", image=chickenItem, examine="Roasted Karu, cooked to perfection!")
         self.highProofDrink = Item((0,0), name="High-Proof Alchohol", image=pygame.image.load("graphics/bottle.png"), examine="I don't think I'm old enough to have this.")
-        self.drink = Item((0,0), name="Non-Alchoholic Drink", image=pygame.image.load("graphics/bottle.png"), examine="A delicious non-alchoholic beverage.")
+        self.juice = Item((0,0), name="Juice Box", image=pygame.image.load("graphics/juice.png"), examine="A fruity drink that never expires.")
         self.heater = Heater((0,0), name="Portable Heater (Fuel Not Included)", image=pygame.image.load("graphics/heater.png"), examine="This is useless without fuel.")
         self.heaterFueled = Item((0,0), name="Portable Heater (Fuel Included)", image=pygame.image.load("graphics/heaterFueled.png"), examine="This is useless without fuel.")
         self.popcornEmpty = Item((0,0), name="Popcorn Kernels", image=pygame.image.load("graphics/emptyPopcorn.png"), examine="There's nothing left except for popcorn kernels.")
@@ -635,7 +636,7 @@ class Assets(object):
         self.bag = Bag(pos=(1080,0), name="Open Inventory", image=pygame.image.load("graphics/bag.png"), examine="It's my bag.")
         self.settings = NPC(pos=(0,0), name="Settings", image=pygame.image.load("graphics/settings.png"), examine="A hastily drawn cogwheel", dialogTree=self.dialogTrees["settingsMenu"])
         self.computer = Computer(pos=(550,350), name="Use Computer", image=pygame.image.load("graphics/Computer.png"), examine="My old computer I use to browse dank memes.", dialogTree=self.dialogTrees["computerDialog"])
-        self.computerPast = Computer(pos=(550,350), name="Use Computer", image=pygame.image.load("graphics/ComputerPast.png"), examine="A new computer Joms Sr uses to browse dank memes.", dialogTree=self.dialogTrees["computerDialog"])
+        self.computerPast = Computer(pos=(550,350), name="Use Computer", image=pygame.image.load("graphics/ComputerPast.png"), examine="A new computer Joms Sr uses to browse dank memes.", dialogTree=self.dialogTrees["pastComputerDialog"])
         self.bed = Selectable(pos=(0,330), name="Bed", image=pygame.image.load("graphics/bed.png"), examine="Even though it's a waste of time, I like to make my bed every morning.")
         self.bedPast = Selectable(pos=(0,330), name="Bed", image=pygame.image.load("graphics/bedPast.png"), examine="Looks like Joms Sr also wastes his time making his bed each morning.")
         self.weedPlot = Selectable(pos=(80,435), name="Weed-Filled Garden", image=pygame.image.load("graphics/plotWeeds.png"), examine="No one has weeded this garden in years.")
@@ -691,7 +692,7 @@ class Assets(object):
         self.bagChanFull = NPC(pos=(440,375), name="Stuffed Jelly", image=bagChanStuffedImage, examine="Jelly's insatiable trash-lust has been satisfied... for now...", dialogTree=self.dialogTrees["bagChanStuffedDialog"])
         falzarImage = pygame.transform.scale2x(pygame.image.load("graphics/Bouncer_Falzar.png"))
         self.falzar = Falzar((500,0), name="Crocodile with Style", image=falzarImage, examine="A hostile crocodile with style is blocking the entrance.", dialogTree=self.dialogTrees["falzarDialog"])
-        self.botseph = Botseph((300,110), name="Botseph", image=pygame.image.load("graphics/botseph.png"), examine="The bartender of the very originally named \"Bar\"", dialogTree=self.dialogTrees["falzarDialog"])
+        self.botseph = Botseph((300,110), name="Botseph", image=pygame.image.load("graphics/botseph.png"), examine="The bartender of the very originally named \"Bar\"", dialogTree=self.dialogTrees["botsephDialog"])
         self.beacoi = Beacoi((600,400), name="Beacoi Ofsnoe", image=pygame.image.load("graphics/Knife_Beacoi.png"), examine="The fearsome Beacoi Ofsnoe with his razer sharp knife-like talons.", dialogTree=self.dialogTrees["beacoiDialog"])
 
         # Rooms
@@ -890,7 +891,7 @@ def setTime(state, assets):
 def freezeRoom(state, assets):
     state.currRoom.selectables.remove(assets.karu)
     state.currRoom.selectables.append(assets.frozenKaru)
-    inventorDialog["start"]["options"]["freeze"] = "Help, Karu is frozen solid! Do you have something to help?"    
+    inventorDialog["start"]["options"]["freeze"] = "Help, Karu is frozen solid!"    
     inventorDialog["start"]["next"]["freeze"] = "freeze"
     thermostatDialog["start"]["options"].pop("1")
     thermostatDialog["start"]["options"].pop("2")
@@ -931,29 +932,42 @@ def checkGirl(state, assets):
         beacoiDialog["fight?"]["next"]["1"] = "weapon"
     return state, assets
 
+def iVoted(state, assets):
+    pastComputerDialog["start"]["options"] = {"5": "Turn off computer"}
+    computerDialog["youtube"] = {
+        "text": "You check Youtube, and there you see it. The Witcher 3 - Worse Than Breaking Bad by Joeseph Anderson. Total runtime 239 Hours and 53 Minutes.",
+        "options": {"1": "Watch Witcher 3 Video"},
+        "next": {"1": "witcher"},
+    }
+    return (state, assets)
+
+def giveJuice(state, assets):
+    state.currInventory.append(assets.juice)
+    botsephDialog["start"]["options"].pop("1")
+    return (state, assets)
 
 def credits(state, assets):
     credits_text = [
-        "By: PubSub",
-        "Help from:",
-        "Jelly",
-        "404SamNotFound",
-        "apsiodhjaopsidhjaopsidhaosid1",
-        "apsiodhjaopsidhjaopsidhaosid2",
-        "apsiodhjaopsidhjaopsidhaosid3",
-        "apsiodhjaopsidhjaopsidhaosid4",
-        "apsiodhjaopsidhjaopsidhaosid5",
-        "apsiodhjaopsidhjaopsidhaosid6",
-        "apsiodhjaopsidhjaopsidhaosid7",
-        "apsiodhjaopsidhjaopsidhaosid8",
-        "apsiodhjaopsidhjaopsidhaosid8",
-        "apsiodhjaopsidhjaopsidhaosid9",
-        "apsiodhjaopsidhjaopsidhaosid10",
-        "apsiodhjaopsidhjaopsidhaosid11",
-        "apsiodhjaopsidhjaopsidhaosid12",
-        "apsiodhjaopsidhjaopsidhaosid13",
+        ("Director", "PubSub"),
+        ("Executive Producer", "PubSub"),
+        ("Lead Programmer", "PubSub"),
+        ("Lead Writer", "PubSub"),
+        ("Storyboarding", "PubSub"),
+        ("", "Jelly"),
+        ("", "404SamNotFound"),
+        ("Joms Quest Title Screen", "404SamNotFound"),
+        ("Background Art", "PubSub"),
+        ("Sprite Art", "PubSub"),
+        ("", "Jelly"),
+        ("", "404SamNotFound"),
+        ("", "Anu/Irene"),
+        ("Music",""),
+        ("Joms Quest IV Main Theme", "PubSub"),
+        ("Oh Canada", "Calixa Lavallée"),
+        ("Miniature Overture", "Pyotr Ilyich Tchaikovsky"),
+        ("\"You should make Moms romancable\"", "Jelly"),
+        ("My Star, My Perfect Silence", "Joms"),
     ]
-
 
     # Create a font
     FONT_SIZE = 32
@@ -987,12 +1001,16 @@ def credits(state, assets):
         if y_pos < -credits_height:
             y_pos = HEIGHT
 
-        # Render and blit the credits text
-        for i, line in enumerate(credits_text):
-            text_surface = font.render(line, True, TEXT_COLOR)
-            text_rect = text_surface.get_rect()
-            text_rect.midtop = (WIDTH // 2, y_pos + i * FONT_SIZE)
-            screen.blit(text_surface, text_rect)
+        # # Render and blit the credits text
+        for i, (role, name) in enumerate(credits_text):
+            textSurf1 = font.render(role, True, TEXT_COLOR)
+            textSurf2 = font.render(name, True, TEXT_COLOR)
+            text_rect1 = textSurf1.get_rect()
+            text_rect1.topleft = (300, y_pos + i * (FONT_SIZE+ 10))
+            screen.blit(textSurf1, text_rect1)
+            text_rect2 = textSurf2.get_rect()
+            text_rect2.topleft = (800, y_pos + i * (FONT_SIZE+ 10))
+            screen.blit(textSurf2, text_rect2)
 
         # Update the display
         pygame.display.flip()
@@ -1002,6 +1020,7 @@ def credits(state, assets):
 
     pygame.quit()
     sys.exit()
+    return (state, assets)
 
 # Dictionary to map dialog options to functions
 eventLookup = {
@@ -1017,6 +1036,8 @@ eventLookup = {
     "loseFight": loseFight,
     "checkGirl": checkGirl,
     "credits": credits,
+    "iVoted": iVoted,
+    "giveJuice": giveJuice,
 
     # Quiz
     "resetQuizScore" : resetQuizScore,

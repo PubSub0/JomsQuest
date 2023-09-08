@@ -630,7 +630,7 @@ thermostatDialog = {
         },
     },
     "increase": {
-        "text": "You increase the room's temperature to 75°F. You quickly realize this is too hot and quickly set the temperature back to 74°F.",
+        "text": "You increase the room's temperature to 75°F. You realize this is too hot and quickly set the temperature back to 74°F.",
         "options": {
             "2": "Decrease Temperature",
             "3": "Leave",
@@ -810,13 +810,93 @@ computerDialog = {
     },
     "victory": {
         "text": "You check Youtube, and there you see it. The Witcher 3 - Worse Than Breaking Bad by Joeseph Anderson. Total runtime 239 Hours and 53 Minutes.",
-    }, # TODO fix this
+        "options": {"1": "Watch Witcher 3 Video"},
+        "next": {"witcher"},
+    },
+    "witcher": {
+        "text": "You settle down to watch the entire video in one sitting. As Joe's calming tone washes over you, you have one final thought \"It was worth the wait\"",
+        "options": {"1": "The End"},
+        "next": {"1": "end"},
+    },
+    "end": {
+        "text": "The Spongebob Movie really is overrated",
+        "options": {"1": "The End"},
+        "next": {"1": "leave"},
+        "events": ["credits"],
+    },
     "leave": {
         "text": "",
         "options": {},
         "next": None,
     },
 }
+
+pastComputerDialog = {
+    "start": {
+        "text": "You log onto the computer.",
+        "options": {
+            "1": "Twitch",
+            "3": "Discord",
+            "4": "Youtube",
+            "5": "Turn off computer",
+        },
+        "next": {
+            "1": "twitch",
+            "3": "discord",
+            "4": "youtube",
+            "5": "leave",
+        },
+    },
+    "twitch": {
+        "text": "You navigate to twitch.tv/andersonjph. Joe is currently streaming some weeb game and making confused 'OOO??'ing noises. You'll catch the VOD later.",
+        "options": {
+            "3": "Discord",
+            "4": "Youtube",
+            "5": "Turn off computer",
+        },
+        "next": {
+            "3": "discord",
+            "4": "youtube",
+            "5": "leave",
+        },
+    },
+    "discord": {
+        "text": "You log onto discord and check #dragons-den. It appears there's a vote for what games Joe will steam next Christmas. The choices are between Feliz Navidango and Telltale-mas. Joms Sr has already cast his vote for Telltale-mas, but it's not too late to change it.",
+        "options": {
+            "1": "Don't change vote.",
+            "4": "Vote for Feliz Navidango",
+        },
+        "next": {
+            "1": "leave",
+            "4": "voted",
+        },
+    },
+    "voted": {
+        "text": "You changed the vote for Feliz Navidango and feel the world shift.",
+        "options": {"1": "Turn off computer"},
+        "next": {"1": "leave"},
+        "events": ["iVoted"],
+    },
+    "youtube": {
+        "text": "You check the recent uploads of your favorite Youtuber Joseph Anderson to see if he uploaded the Witcher 3 video yet. It looks like the Witcher 3 video has not been released. Where could it be?",
+        "options": {
+            "1": "Twitch",
+            "3": "Discord",
+            "5": "Turn off computer",
+        },
+        "next": {
+            "1": "twitch",
+            "3": "discord",
+            "5": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
 
 bagChanDialog = {
     "start": {
@@ -885,14 +965,91 @@ bagChanStuffedDialog = {
     },
 }
 
-falzarDialog = {
+botsephDialog = {
     "start": {
-        "text": "Hello",
+        "text": "Greeting {Patron}, Welcome to {Bar}. What can I get you?",
         "options": {
+            "1": "I'd like a drink please.",
+            "2": "ur a {Bar}",
+            "3": "Leave",
+        },
+        "next": {
+            "1": "drink",
+            "2": "pupper",
+            "3": "leave",
+        },
+    },
+    "pupper": {
+        "text": ":pupper:",
+        "options": {"1": "Leave"},
+        "next": {"1": "leave"},
+    },
+    "drink": {
+        "text": "{you.age} < {LEGAL_DRINKING_AGE}, cannot process request.",
+        "options": {
+            "1": "What can I get then?",
             "2": "Leave",
         },
         "next": {
+            "1": "juice",
             "2": "leave",
+        },
+    },
+    "juice": {
+        "text": "juice.give(). By the time juice.ferment(), {you.age} >= {LEGAL_DRINKING_AGE} will be True.",
+        "options": {"1": "Thanks..."},
+        "next": {"1": "leave"},
+        "events": ["giveJuice"]
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+
+falzarDialog = {
+    "start": {
+        "text": "ID Please",
+        "options": {
+            "1": "Can you let me in?",
+            "2": "Leave",
+        },
+        "next": {
+            "1": "letme",
+            "2": "leave",
+        },
+    },
+    "letme": {
+        "text": "Sure, show me your ID first",
+        "options": {
+            "1": "I don't have an ID.",
+            "2": "Leave"
+        },
+        "next": {
+            "1": "id",
+            "2": "leave",
+        },
+    },
+    "id": {
+        "text": "Listen kid, I can't let you in without an ID and it's almost lunch time so get out of here before I become a Hostile Crocodile.",
+        "options": {
+            "1": "Atleast tell me what's in the bar.",
+            "2": "Leave",
+        },
+        "next": {
+            "1": "spoilers",
+            "2": "leave",
+        },
+    },
+    "spoilers": {
+        "text": "No spoilers.",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {
+            "1": "leave",
         },
     },
     "leave": {
@@ -1015,17 +1172,17 @@ beacoiDialog = {
         "next": {"1": "leave"},
     },
     "shotput": {
-        "text": "You pick up the Shot Put Ball and stand ready. \"BEGIN!\" Shouted Beacoi as he rushed you. You dropped everything you were holding, but since you didn't create an elaborate Rube Goldberg death trap before hand, it was ineffective.",
+        "text": "You pick up the Shot Put Ball and stand ready. \"BEGIN!\" Shouted Beacoi as he rushes you. You dropped everything you were holding, but since you didn't create an elaborate Rube Goldberg death trap before hand, it was ineffective.",
         "options": {"1": "Continue..."},
         "next": {"1": "lose"},
     },
     "gun": {
-        "text": "You pick up the Gun and stand ready. \"BEGIN!\" Shouted Beacoi as he rushed you. You take and and fire dead-center on your target. Beacoi effortlessly deflect the bullet with his knife-like talons.",
+        "text": "You pick up the Gun and stand ready. \"BEGIN!\" Shouted Beacoi as he rusheds you. You take and and fire dead-center on your target. Beacoi effortlessly deflect the bullet with his knife-like talons.",
         "options": {"1": "Continue..."},
         "next": {"1": "lose"},
     },
     "katanna": {
-        "text": "You pick up the Katanna and stand ready. \"BEGIN!\" Shouted Beacoi as he rushed you. As you attempt to parry Beacoi's slashes, the Glorious Nippon Steel folded over a thousand times shatters into a thousand pieces.",
+        "text": "You pick up the Katanna and stand ready. \"BEGIN!\" Shouted Beacoi as he rushes you. As you attempt to parry Beacoi's slashes, the Glorious Nippon Steel folded over a thousand times shatters into a thousand pieces.",
         "options": {"1": "Continue..."},
         "next": {"1": "lose"},
     },
@@ -1039,13 +1196,18 @@ beacoiDialog = {
 
 beacoiWinDialog = {
     "start": {
-        "text": "Hello",
+        "text": "You point the bat at Beacoi in challenge and stand ready. \"BEGIN\" Shouted Beacoi as he rushes you. You take a step and put your full force behind a single swing. Due to your advantage in reach and stopping power, you manage to cleanly knock Beacoi out in just one blow.",
         "options": {
-            "2": "Leave",
+            "2": "Continue...",
         },
         "next": {
-            "2": "leave",
+            "2": "victory",
         },
+    },
+    "victory": {
+        "text": "Not bad kid. No one's ever managed to beat me in a fight. For that, I will give you my most prized possession, a mint condition Space Jam DVD.",
+        "options": {"1": "Leave"},
+        "next": {"1": "leave"},
     },
     "leave": {
         "text": "",
