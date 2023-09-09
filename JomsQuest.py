@@ -123,7 +123,7 @@ def checkHoverText(selectablesLists, state) -> str:
                     if selectable != assets.bag or state.selectedItem is None:
                         state.hoverText += selectable.name
     
-    state.hoverText += f"{pygame.mouse.get_pos()}"
+    # state.hoverText += f"{pygame.mouse.get_pos()}"
     return state
 
 
@@ -132,6 +132,7 @@ def startDialog(state, assets, x=640, y=550, fontSize=32):
     # Always assume dialog starts at start in the dict
     currNode = "start"
     state.dialog = ""
+    playedSoundAtNode = False
     while True:
         # Need to draw everything here so that the dialog doesnt constantly stack up.
         drawEverything(state=state, assets=assets)
@@ -162,6 +163,12 @@ def startDialog(state, assets, x=640, y=550, fontSize=32):
             screen.blit(assets.imageLookup[state.currDialogTree[currNode]["image"][0]], state.currDialogTree[currNode]["image"][1])
             pygame.display.update()
 
+        if "sound" in state.currDialogTree[currNode]:
+            # Check if we already played it
+            if not playedSoundAtNode:
+                assets.soundLookup[state.currDialogTree[currNode]["sound"]].play()
+                playedSoundAtNode = True
+
         pygame.display.update()
 
         # Handle events
@@ -177,6 +184,7 @@ def startDialog(state, assets, x=640, y=550, fontSize=32):
                         selectedOption = optionKey
 
         if selectedOption is not None:
+            playedSoundAtNode = False
             currNode = state.currDialogTree[currNode]["next"][selectedOption]
             if "events" in state.currDialogTree[currNode]:
                 for event in state.currDialogTree[currNode]["events"]:
@@ -188,21 +196,23 @@ def startDialog(state, assets, x=640, y=550, fontSize=32):
 ### Base Item Classes
 # Base Room class with it's background, selectable objects, and exits
 class Room(object):
-    def __init__(self, name, bg=None, selectables=[], exits=[], enterEvents=[]):
+    def __init__(self, name, bg=None, selectables=[], exits=[], enterEvents=[], song=None):
         self.bg = bg
         self.selectables = selectables
         self.name = name
         self.exits = exits
         self.enterEvents = enterEvents
+        self.song = song
 
 # Base selectable class. Anything that can be iteracted with should be this class.
 class Selectable(object):
-    def __init__(self, pos, name="", image=None, examine="", useTxt="I can't use that"):
+    def __init__(self, pos, name="", image=None, examine="", useTxt="I can't use that", useSound=None):
         self.pos = pos
         self.image = image
         self._name = name
         self.examineTxt = examine
         self.useTxt = useTxt
+        self.useSound = useSound
 
     @property
     def name(self):
@@ -215,6 +225,8 @@ class Selectable(object):
     # Selectables that don't just say it's useTxt should override this method
     def use(self, state, assets):
         state.dialog = self.useTxt
+        if self.useSound is not None:
+            self.useSound.play()
         return (state, assets)
 
     # Should be overidden with conditional uses with other items. These typically should only check for one other selectable type.
@@ -253,12 +265,16 @@ class JomsSrPast(NPC):
 
 class Beacoi(NPC):
     def useWith(self, state, assets):
-        if state.selectedItem == assets.batItem and not state.isGirl:
-            state.currDialogTree = assets.dialogTrees["beacoiWinDialog"]
-            startDialog(state, assets)
-            state.currInventory.append(assets.spaceJam)
-            state.currInventory.remove(state.selectedItem)
-            return (state, assets)
+        if state.selectedItem == assets.batItem:
+            if not state.isGirl:
+                state.currDialogTree = assets.dialogTrees["beacoiWinDialog"]
+                startDialog(state, assets)
+                state.currInventory.append(assets.spaceJam)
+                state.currInventory.remove(state.selectedItem)
+                return (state, assets)
+            else:
+                state.dialog = "Sorry miss, but girls aren't allowed to fight in Beacoi's Fight Club. Please come back on Thursday for the Women's league."
+                return (state, assets)
         else:
             return super().useWith(state,assets)
 
@@ -299,6 +315,7 @@ class Jelly(NPC):
             state.currRoom.selectables.remove(assets.bagChan)
             state.currRoom.selectables.append(assets.bagChanFull)
             state.currInventory.remove(state.selectedItem)
+            assets.omnom.play()
             state.dialog = "\"You mean it? Don't mind if I do! Been a while since I got one with the box...\" Bagchan devours the pizza, box and all. You could swear you saw a look of terror on Norm's face before the box disappeared under the bag."
             return (state, assets)
         else:
@@ -309,7 +326,9 @@ class Train(NPC):
         state.holdClicks = True
         if state.ticketGiven:
             clock.tick(60)
+            state.currRoom.song.stop()
             state.currRoom = assets.moncton
+            state.currRoom.song.play(-1)
             return (state, assets)
         else:
             return super().use(state, assets)
@@ -329,10 +348,12 @@ class PastMoms(NPC):
         if state.selectedItem == assets.greatVegetables:
             state.isGirl = True
             state.currInventory.remove(assets.greatVegetables)
+            assets.timeShift.play()
             state.dialog = "You feed Moms the GREAT VEGETABLES. You feel different somehow."
             assets.portrait.image = pygame.image.load("graphics/JomsGirl.png")
         elif state.selectedItem == assets.chicken:
             state.isGirl = False
+            assets.timeShift.play()
             state.dialog = "You feed Moms a piece of the Roast Karu. You feel different somehow."
             assets.portrait.image = pygame.image.load("graphics/Joms.jpg")
         else:
@@ -347,6 +368,7 @@ class FrozenKaru(NPC):
             state.currRoom.selectables.remove(self)
             state.currRoom.selectables.append(assets.fireKaru)
             state.karuOnFire = True
+            assets.fireSound.play()
             return (state, assets)
         else:
             return super().useWith(state, assets)
@@ -357,6 +379,7 @@ class Nodja(NPC):
             state.selectedItem = None
             state.currInventory.remove(assets.microwaveItem)
             state.currInventory.append(assets.phoneWaveItem)
+            assets.wrenchSound.play()
             state.dialog = "A broken microwave huh? I can fix this and make a few improvements."
         else:
             return super().useWith(state, assets)
@@ -374,7 +397,13 @@ class Exit(object):
         return self.rect
 
     def enterRoom(self, state, assets):
-        state.currRoom = assets.roomLookup[exit.newLoc]
+        # Change song if needed
+        if (state.currRoom.song != (newRoom := assets.roomLookup[exit.newLoc]).song):
+            if state.currRoom.song is not None:
+                state.currRoom.song.stop()
+            if newRoom.song is not None:
+                newRoom.song.play(-1)
+        state.currRoom = newRoom
         state.dialog=""
         for enterEvent in state.currRoom.enterEvents:
             state, assets = eventLookup[enterEvent](state, assets)
@@ -403,7 +432,8 @@ class Item(Selectable):
 
 class Heater(Item):
     def useWith(self, state, assets):
-        if state.selectedItem.name == "High-Proof Alchohol":        
+        if state.selectedItem.name == "High-Proof Alchohol":
+            assets.bagSound.play()  
             state.currInventory.remove(self)
             state.currInventory.append(assets.heaterFueled)
             state.currInventory.remove(state.selectedItem)
@@ -427,6 +457,7 @@ class PlotPast(Selectable):
 
 class VegetablesPlot(Selectable):
     def use(self, state, assets):
+        assets.gvSfx.play()
         if assets.greatVegetables not in state.currInventory:
             state.dialog = "GREAT VEGETABLES GREAT VEGETABLES GREAT VEGETABLES GREAT VEGETABLES GREAT VEGETABLES GREAT VEGETABLES GREAT VEGETABLES"
             state.currInventory.append(assets.greatVegetables)
@@ -440,9 +471,10 @@ class Pickupable(Selectable):
         self.invItem = invItem
 
     def use(self, state, assets):
-        state.dialog = f"You took the Baseball Bat"
+        state.dialog = f"You took the {self.name}"
         state.currInventory.append(self.invItem)
         state.currRoom.selectables.remove(self)
+        assets.bagSound.play()
         return (state, assets)
 
 class ScorchedFountain(Pickupable):
@@ -454,6 +486,7 @@ class ScorchedFountain(Pickupable):
 class Microwave(Pickupable):
     def use(self, state, assets):
         state, assets = super().use(state, assets)
+        state.dialog = "You picked up the Broken Microwave"
         state.currRoom.selectables.append(assets.socket)
         return (state, assets)
 
@@ -462,10 +495,12 @@ class BatRack(Pickupable):
         state, assets = super().use(state, assets)
         state.holdClicks = True
         state.currRoom.selectables.append(assets.batRackEmpty)
+        state.dialog = "You took the bat off the rack."
         return(state, assets)
 
 class PhoneWaveActive(Selectable):
     def use(self, state, assets):
+        assets.timeTravelSound.play()
         if state.currRoom == assets.kitchen:
             state.currRoom = assets.pastKitchen
         else:
@@ -491,6 +526,7 @@ class Fridge(Selectable):
         if state.drinkInFridge and state.currRoom == assets.kitchen:
             state.currInventory.append(assets.highProofDrink)
             state.drinkInFridge = False
+            assets.bagSound.play()
             state.dialog = "Looks like the juice fermented into alchohol. (You Recieved High-Proof Alchohol)"
             return (state, assets)
         else:
@@ -522,6 +558,7 @@ class BreakGlass(Selectable):
     def useWith(self, state, assets):
         if state.selectedItem.name == "Brick":
             if state.karuOnFire:
+                assets.glassBreak.play()
                 state.currRoom.selectables.remove(self)
                 state.currRoom.selectables.append(assets.keypad)
             else:
@@ -552,21 +589,21 @@ class Bag(Selectable):
 class Joms(Selectable):
     def useWith(self, state, assets):
         if isinstance(state.selectedItem, Item):
-            state.currInventory.remove(state.selectedItem)
-            state.dialog = f"You ate the {state.selectedItem.name}"
+            state.dialog = f"You aren't hungry."
             return (state, assets)
 
 
 # The current state of the game. All the flags and stuff is stored here.
 class State(object):
     def __init__(self, assets):
+        self.currSong = None
         self.dialog = ""
         self.hoverText = ""
         self.currDialogTree = assets.dialogTrees["mainMenu"]
         self.currNode = "start"
         self.holdClicks = False
         # TODO change to main menu room
-        self.currRoom = assets.bedroom
+        self.currRoom = assets.titleScreen
         self.currInventory = []
         self.selectedItem = None
         self.examScore = 0
@@ -580,6 +617,59 @@ class State(object):
 # Container for all the instances of things the game uses. Inefficient but fuck it.
 class Assets(object):
     def __init__(self):
+        # Music
+        self.jomaliaSong = pygame.mixer.Sound("Audio/JomsSong.wav")
+        self.girlsBathroomSong = pygame.mixer.Sound("Audio/girlsBathroomSong.mp3")
+        self.monctonSong = pygame.mixer.Sound("Audio/monctonSong.mp3")
+        self.monctonSong.set_volume(.3)
+        self.classroomSong = pygame.mixer.Sound("Audio/classroomSong.mp3")
+        self.classroomSong.set_volume(.3) 
+
+        # Sounds
+        self.kritterSfx = pygame.mixer.Sound("Audio/kritter.mp3")
+        self.joeWhat = pygame.mixer.Sound("Audio/WHAT.wav")
+        self.joeWhat.set_volume(.3)
+        self.mayuri = pygame.mixer.Sound("Audio/mayuri.mp3")
+        self.mayuri.set_volume(.2)
+        self.quoi = pygame.mixer.Sound("Audio/quoi.mp3")
+        self.quoiPanic = pygame.mixer.Sound("Audio/quoiPanic.mp3")
+        self.bagSound = pygame.mixer.Sound("Audio/bagSound.mp3")
+        self.omnom = pygame.mixer.Sound("Audio/omnom.mp3")
+        self.oof = pygame.mixer.Sound("Audio/oof.mp3")
+        self.oof.set_volume(.5)
+        self.wrenchSound = pygame.mixer.Sound("Audio/wrenchSound.mp3")
+        self.gvSfx = pygame.mixer.Sound("Audio/great_vegetables.wav")
+        self.gvSfx.set_volume(.2)
+        self.winSound = pygame.mixer.Sound("Audio/win.mp3")
+        self.winSound.set_volume(.2)
+        self.glassBreak = pygame.mixer.Sound("Audio/glassBreak.mp3")
+        self.glassBreak.set_volume(.3)
+        self.timeTravelSound = pygame.mixer.Sound("Audio/timeTravelSound.mp3")
+        self.timeTravelSound.set_volume(.3)
+        self.timeShift = pygame.mixer.Sound("Audio/timeShift.mp3")
+        self.timeShift.set_volume(.3)
+        self.homerun = pygame.mixer.Sound("Audio/homerun.mp3")
+        self.homerun.set_volume(.2)
+        self.sprinklerSound = pygame.mixer.Sound("Audio/sprinklerSound.mp3")
+        self.sprinklerSound.set_volume(.3)
+        self.fireSound = pygame.mixer.Sound("Audio/fireSound.mp3")
+        self.fireSound.set_volume(.3)
+        self.freezeSound = pygame.mixer.Sound("Audio/freezeSound.mp3")
+        self.freezeSound.set_volume(.3)
+
+        self.soundLookup = {
+            "mayuri": self.mayuri,
+            "quoi": self.quoi,
+            "quoiPanic": self.quoiPanic,
+            "oof": self.oof,
+            "winSound": self.winSound,
+            "freezeSound": self.freezeSound,
+            "bagSound": self.bagSound,
+            "homerun": self.homerun,
+            "sprinklerSound": self.sprinklerSound,
+        }
+
+
         # Dialog trees
         self.dialogTrees = {
             "mainMenu": mainMenu,
@@ -610,9 +700,9 @@ class Assets(object):
         brickExamine = "A kitchen brick. A useful cooking tool and nutritious too."
         brickImage = pygame.transform.scale(pygame.image.load("graphics/brick.png"), (100,50))
         self.brickItem = Item(pos=(0,0), name="Brick", image=brickImage, examine=brickExamine)
-        mwExamine = "I use this to heat up my Hot Pockets."
+        mwExamine = "It's a Genbu'd Microwave."
         microwaveImage = pygame.transform.scale(pygame.image.load("graphics/microwave.png"), (100,50))
-        self.microwaveItem = Item(pos=(0,0), name="Microwave", image=microwaveImage, examine=mwExamine)
+        self.microwaveItem = Item(pos=(0,0), name="Broken Microwave", image=microwaveImage, examine=mwExamine)
         pwImage = pygame.transform.scale(pygame.image.load("graphics/phonewave.png"), (100,50))
         self.phoneWaveItem = Item(pos=(0,0), name="PhoneWave (Name Subject To Change)", image=pwImage, examine="It's the PhoneWave (Name Subject to Change)!")
         trainTicketImage = pygame.transform.scale(pygame.image.load("graphics/trainTicket.png"), (100,100))
@@ -644,10 +734,10 @@ class Assets(object):
         self.plotPlantedPast = PlotPast(pos=(80,435), name="Weed-Free Garden", image=pygame.image.load("graphics/pastPlotPlanted.png"), examine="The garden has been planted with popcorn kernels.")
         self.vegetablesPlot = VegetablesPlot(pos=(80,435), name="GREAT VEGETABLES!", image=pygame.image.load("graphics/plotVegetables.png"), examine="GREAT VEGETABLES!")
         self.brick = Pickupable(pos=(490,318), invItem=self.brickItem, name="Kitchen Brick", image=pygame.image.load("graphics/brick.png"), examine=brickExamine)
-        self.oven = Selectable(pos=(173,312), name="Oven", image=pygame.image.load("graphics/oven.png"), examine="Looks like chocolate chip-less chocolate chip cookies are being baked. Delicious!")
+        self.oven = Selectable(pos=(173,312), name="Oven", image=pygame.image.load("graphics/oven.png"), examine="Looks like chocolate chip-less chocolate chip cookies are being baked. Delicious!", useTxt="The chocolate chipless chocolate chip cookies aren't finished yet.")
         self.ovenPast = Selectable(pos=(173,312), name="Oven", image=pygame.image.load("graphics/oven.png"), examine="Our oven. Looks like Moms is cooking dinner.")
-        self.fridge = Fridge(pos=(891,110), name="Fridge", image=pygame.image.load("graphics/fridge.png"), examine="There's nothing in it except some expired fruit.")
-        self.fridgePast = Fridge(pos=(891,110), name="Fridge", image=pygame.image.load("graphics/fridge.png"), examine="There's nothing in it except some ripe fruit.")
+        self.fridge = Fridge(pos=(891,110), name="Fridge", image=pygame.image.load("graphics/fridge.png"), examine="There's nothing in it except some expired fruit.", useTxt="There's nothing in there that I want.")
+        self.fridgePast = Fridge(pos=(891,110), name="Fridge", image=pygame.image.load("graphics/fridge.png"), examine="There's nothing in it except some ripe fruit.", useTxt="There's nothing in there that I want.")
         self.pot = Pot(pos=(190,260), name="Pot", image=pygame.image.load("graphics/pot.png"), examine="A pot of Moms' famous unsalted minced meat.")
         self.microwave = Microwave(pos=(170,129), invItem=self.microwaveItem, name="Microwave", image=pygame.image.load("graphics/microwave.png"), examine=mwExamine)
         self.socket = Socket(pos=(250,145), name="Electrical Outlet", image=pygame.image.load("graphics/socket.png"), examine="An electrical outlet.")
@@ -660,7 +750,7 @@ class Assets(object):
         self.trashCan = TrashCan(pos=(170,400), name="Trash Can", image=pygame.image.load("graphics/trashCan.png"), examine="A dirty trashcan with a bag of uneaten popcorn ontop.")
         self.sink = Selectable(pos=(203,305), name="Sink", image=pygame.image.load("graphics/sink.png"), examine="A dirty sink.", useTxt="I don't need to pee.")
         self.stadium = Selectable(pos=(940,310), name="Stadium", image=pygame.image.load("graphics/stadium.png"), examine="The world famous Moncton Stadium", useTxt="There's nothing happening there.")
-        self.cave = Selectable(pos=(0,240), name="Dragon's Den", image=pygame.image.load("graphics/dragonsDen.png"), examine="\"Beware of Dragons\"", useTxt="You hear a terrifying roar and decide not to enter.")
+        self.cave = Selectable(pos=(0,240), name="Dragon's Den", image=pygame.image.load("graphics/dragonsDen.png"), examine="\"Beware of Dragon\"", useTxt="You hear a terrifying roar and decide not to enter.", useSound=self.joeWhat)
         # Global selectables container
         self.global_selectables = [self.bag, self.settings, self.portrait]
 
@@ -696,8 +786,9 @@ class Assets(object):
         self.beacoi = Beacoi((600,400), name="Beacoi Ofsnoe", image=pygame.image.load("graphics/Knife_Beacoi.png"), examine="The fearsome Beacoi Ofsnoe with his razer sharp knife-like talons.", dialogTree=self.dialogTrees["beacoiDialog"])
 
         # Rooms
-        self.bedroom = Room(name="bedroom", bg=pygame.image.load("graphics/Bedroom.png"), selectables=[self.computer, self.bed], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="livingRoom", name="Go to Living Room")])
-        self.pastBedroom = Room(name="bedroom", bg=pygame.image.load("graphics/bedroombgPast.png"), selectables=[self.computerPast, self.bedPast, self.jomsSrPast], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="pastLivingRoom", name="Go to Living Room")])
+        self.titleScreen = Room(name="title", bg=pygame.image.load("graphics/titleScreen.png"), selectables=[], exits=[])
+        self.bedroom = Room(name="bedroom", bg=pygame.image.load("graphics/Bedroom.png"), selectables=[self.computer, self.bed], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="livingRoom", name="Go to Living Room")], song=self.jomaliaSong)
+        self.pastBedroom = Room(name="bedroom", bg=pygame.image.load("graphics/bedroombgPast.png"), selectables=[self.computerPast, self.bedPast, self.jomsSrPast], exits=[Exit(rect=pygame.Rect(1000, 130, 200, 420), newLoc="pastLivingRoom", name="Go to Living Room")], song=self.jomaliaSong)
         self.livingRoom = Room(
             name="livingRoom",
             bg=pygame.image.load("graphics/livingroom.png"),
@@ -706,7 +797,8 @@ class Assets(object):
                 Exit(rect=pygame.Rect(155, 160, 150, 300), newLoc="bedroom", name="Go to Bedroom"),
                 Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="garden", name="Go Outside"),
                 Exit(rect=pygame.Rect(0, 150, 60, 400), newLoc="kitchen", name="Go to Kitchen"),
-            ]
+            ],
+            song=self.jomaliaSong,
         )
         self.pastLivingRoom = Room(
             name="pastLivingRoom",
@@ -716,12 +808,13 @@ class Assets(object):
                 Exit(rect=pygame.Rect(155, 160, 150, 300), newLoc="pastBedroom", name="Go to Bedroom"),
                 Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="pastGarden", name="Go Outside"),
                 Exit(rect=pygame.Rect(0, 150, 60, 400), newLoc="pastKitchen", name="Go to Kitchen"),
-            ]
+            ],
+            song=self.jomaliaSong,
         )
-        self.garden = Room(name="garden", bg=pygame.image.load("graphics/jomsHousebg.png"), selectables=[self.weedPlot], exits=[Exit(rect=pygame.Rect(400, 350, 40, 110), newLoc="livingRoom", name="Go Inside"), Exit(rect=pygame.Rect(1180, 200, 100, 520), newLoc="townSquare", name="Go to Town")])
-        self.pastGarden = Room(name="pastGarden", bg=pygame.image.load("graphics/jomsHousebgPast.png"), selectables=[self.plotPast], exits=[Exit(rect=pygame.Rect(400, 350, 40, 110), newLoc="pastLivingRoom", name="Go Inside")])
-        self.kitchen = Room(name="kitchen", bg=pygame.image.load("graphics/kitchen.png"), selectables=[self.brick, self.microwave, self.oven, self.pot, self.fridge], exits=[ Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="livingRoom", name="Go to Living Room")])
-        self.pastKitchen = Room(name="pastKitchen", bg=pygame.image.load("graphics/kitchenPast.png"), selectables=[self.phoneWaveActive, self.ovenPast, self.fridgePast], exits=[ Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="pastLivingRoom", name="Go to Living Room")])
+        self.garden = Room(name="garden", bg=pygame.image.load("graphics/jomsHousebg.png"), selectables=[self.weedPlot], exits=[Exit(rect=pygame.Rect(400, 350, 40, 110), newLoc="livingRoom", name="Go Inside"), Exit(rect=pygame.Rect(1180, 200, 100, 520), newLoc="townSquare", name="Go to Town")], song=self.jomaliaSong)
+        self.pastGarden = Room(name="pastGarden", bg=pygame.image.load("graphics/jomsHousebgPast.png"), selectables=[self.plotPast], exits=[Exit(rect=pygame.Rect(400, 350, 40, 110), newLoc="pastLivingRoom", name="Go Inside")], song=self.jomaliaSong)
+        self.kitchen = Room(name="kitchen", bg=pygame.image.load("graphics/kitchen.png"), selectables=[self.brick, self.microwave, self.oven, self.pot, self.fridge], exits=[ Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="livingRoom", name="Go to Living Room")], song=self.jomaliaSong)
+        self.pastKitchen = Room(name="pastKitchen", bg=pygame.image.load("graphics/kitchenPast.png"), selectables=[self.phoneWaveActive, self.ovenPast, self.fridgePast], exits=[ Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="pastLivingRoom", name="Go to Living Room")], song=self.jomaliaSong)
         self.townSquare = Room(
             name="townSquare",
             bg=pygame.image.load("graphics/townSquare.png"),
@@ -733,6 +826,7 @@ class Assets(object):
                 Exit(rect=pygame.Rect(405, 105, 500, 200), newLoc="trainStation", name="Go to Train Station"),
             ],
             enterEvents=["takePopcorn"],
+            song=self.jomaliaSong,
         )
         self.school = Room(
             name="school",
@@ -744,11 +838,12 @@ class Assets(object):
                 Exit(rect=pygame.Rect(700, 180, 175, 400), newLoc="boysBathroom", name="Got to Boy's Bathroom"),
                 BathroomExit(rect=pygame.Rect(920, 180, 175, 400), newLoc="girlsBathroom", name="Got to Girl's Bathroom"),
             ],
+            song=self.jomaliaSong,
         )
-        self.classroom = Room(name="classroom", bg=pygame.image.load("graphics/classroom.png"), selectables=[self.kusoro], exits=[Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="school", name="Go to Hallway")])
-        self.boysBathroom = Room(name="boysBathroom", bg=pygame.image.load("graphics/boysBathroom.png"), selectables=[self.nodja, self.sink], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")])
-        self.girlsBathroom = Room(name="girlsBathroom", bg=pygame.image.load("graphics/girlsBathroom.png"), selectables=[self.sprinkler1, self.sprinkler2, self.batRack, self.thermostat, self.karu], exits=[Exit(rect=pygame.Rect(0,160,160,500), newLoc="school", name="Go to Hallway")])
-        self.trainStation = Room(name="trainStation", bg=pygame.image.load("graphics/trainStation.png"), selectables=[self.trashCan, self.train], exits=[Exit(rect=pygame.Rect(0, 650, 1280, 100), newLoc="townSquare", name="Go to Town")])
+        self.classroom = Room(name="classroom", bg=pygame.image.load("graphics/classroom.png"), selectables=[self.kusoro], exits=[Exit(rect=pygame.Rect(1180, 170, 100, 400), newLoc="school", name="Go to Hallway")], song=self.classroomSong)
+        self.boysBathroom = Room(name="boysBathroom", bg=pygame.image.load("graphics/boysBathroom.png"), selectables=[self.nodja, self.sink], exits=[Exit(rect=pygame.Rect(0,160,90,500), newLoc="school", name="Go to Hallway")], song=self.jomaliaSong)
+        self.girlsBathroom = Room(name="girlsBathroom", bg=pygame.image.load("graphics/girlsBathroom.png"), selectables=[self.sprinkler1, self.sprinkler2, self.batRack, self.thermostat, self.karu], exits=[Exit(rect=pygame.Rect(0,160,160,500), newLoc="school", name="Go to Hallway")], song=self.girlsBathroomSong)
+        self.trainStation = Room(name="trainStation", bg=pygame.image.load("graphics/trainStation.png"), selectables=[self.trashCan, self.train], exits=[Exit(rect=pygame.Rect(0, 650, 1280, 100), newLoc="townSquare", name="Go to Town")], song=self.jomaliaSong)
         self.bar = Room(
             name="bar",
             bg=pygame.image.load("graphics/bar.png"),
@@ -757,9 +852,10 @@ class Assets(object):
                 Exit(rect=pygame.Rect(0, 650, 500, 200),newLoc="townSquare", name="Go to Town"),
                 Exit(rect=pygame.Rect(0, 140, 150, 500),newLoc="townSquare", name="Go to Town"),
                 Trapdoor(rect=pygame.Rect(1070, 490, 200, 150),newLoc="fightClub", name="Enter Trapdoor"),
-            ]
+            ],
+            song=self.jomaliaSong,
         )
-        self.fightClub = Room(name="fightClub", bg=pygame.image.load("graphics/fightClub.png"), selectables=[self.beacoi], exits=[Exit(rect=pygame.Rect(1100, 134, 300, 420), newLoc="bar", name="Go up ladder")])
+        self.fightClub = Room(name="fightClub", bg=pygame.image.load("graphics/fightClub.png"), selectables=[self.beacoi], exits=[Exit(rect=pygame.Rect(1100, 134, 300, 420), newLoc="bar", name="Go up ladder")], song=self.jomaliaSong)
         self.moncton = Room(
             name="moncton",
             bg=pygame.image.load("graphics/moncton.png"),
@@ -767,14 +863,16 @@ class Assets(object):
             exits=[
                 Exit(rect=pygame.Rect(440, 300, 110, 100), newLoc="trainStation", name="Go to Jomalia"),
                 Exit(rect=pygame.Rect(635,350,200,160), newLoc="normsPizza", name="Go to Norm's Pizza"),
-            ]
+            ],
+            song=self.monctonSong,
         )
-        self.normsPizza = Room(name="normsPizza", bg=pygame.image.load("graphics/normsPizza.png"), selectables=[self.normChan], exits=[Exit(rect=pygame.Rect(0, 620, 1280, 100), newLoc="moncton", name="Go to Moncton")])
+        self.normsPizza = Room(name="normsPizza", bg=pygame.image.load("graphics/normsPizza.png"), selectables=[self.normChan], exits=[Exit(rect=pygame.Rect(0, 620, 1280, 100), newLoc="moncton", name="Go to Moncton")], song=self.monctonSong)
 
         # LEFT, TOP, WIDTH, HEIGHT
 
         # Room Lookups
         self.roomLookup = {
+            "titleScreen": self.titleScreen,
             "" : self.bedroom,
             "bedroom": self.bedroom,
             "pastBedroom": self.pastBedroom,
@@ -806,10 +904,6 @@ class Assets(object):
             "confetti": self.confetti,
         }
 
-        # Sounds
-        self.kritterSfx = pygame.mixer.Sound("Audio/kritter.mp3")
-        #pygame.mixer.music.set_volume(0.5)
-
 # Instance a State and Assets object
 assets = Assets()
 state = State(assets)
@@ -819,6 +913,7 @@ def newGame(state, assets):
     state=None
     assets = Assets()
     state = State(assets)
+    state.currRoom = assets.bedroom
     return (state, assets)
 
 
@@ -843,12 +938,13 @@ def correctAnswer(state, assets):
 def scoreQuiz(state, assets):
     if state.examScore == 5:
         state.currInventory.append(assets.trainTicket)
+        # This is gross but it's way too late for me to make it better
         assets.dialogTrees["quizDialog"]["results"]["text"] = "Congratulations, you passed the exam. Now get out of here. (You recieved a Train Ticket!)"
         assets.dialogTrees["quizDialog"]["start"]["text"] = "Go on, enjoy the school trip."
         assets.dialogTrees["quizDialog"]["start"]["options"] = {"1": "Leave"}
         assets.dialogTrees["quizDialog"]["start"]["next"] = {"1": "leave"}
         assets.dialogTrees["quizDialog"]["results"]["image"] = ("confetti", (0,0))
-
+        assets.dialogTrees["quizDialog"]["results"]["sound"] = "winSound"
     else:
         assets.dialogTrees["quizDialog"]["results"]["text"] = f"({state.examScore+1}/6) You did not pass the exam. Maybe try applying youself next time."
     state.currDialogTree = assets.dialogTrees["quizDialog"]
@@ -868,6 +964,7 @@ def phoneWaveInput(state, assets):
 def takePopcorn(state, assets):
     if assets.popcorn in state.currInventory and assets.bagChan in state.currRoom.selectables:
         state.currInventory.remove(assets.popcorn)
+        assets.omnom.play()
         state.dialog = "Like a feral beast, Jelly's insatiable trash-lust activates and is unable to stop themselves from devouring your popcorn, bag and all."
         bagChanDialog["start"]["options"]["mine"] = "Hey, that was mine!"
         bagChanDialog["start"]["options"]["eat"] = "How did you even eat that?"
@@ -899,6 +996,7 @@ def freezeRoom(state, assets):
     return (state, assets)
 
 def giveHeater(state, assets):
+    assets.bagSound.play()
     state.currInventory.append(assets.heater)
     inventorDialog["start"]["options"].pop("freeze")
     return (state, assets)
@@ -934,6 +1032,7 @@ def checkGirl(state, assets):
 
 def iVoted(state, assets):
     pastComputerDialog["start"]["options"] = {"5": "Turn off computer"}
+    assets.timeShift.play()
     computerDialog["youtube"] = {
         "text": "You check Youtube, and there you see it. The Witcher 3 - Worse Than Breaking Bad by Joeseph Anderson. Total runtime 239 Hours and 53 Minutes.",
         "options": {"1": "Watch Witcher 3 Video"},
@@ -960,11 +1059,11 @@ def credits(state, assets):
         ("Sprite Art", "PubSub"),
         ("", "Jelly"),
         ("", "404SamNotFound"),
-        ("", "Anu/Irene"),
         ("Music",""),
         ("Joms Quest IV Main Theme", "PubSub"),
         ("Oh Canada", "Calixa Lavallée"),
         ("Miniature Overture", "Pyotr Ilyich Tchaikovsky"),
+        ("Specialist in style of Persona 5", "Rohan Adiyodi on Youtube"),
         ("\"You should make Moms romancable\"", "Jelly"),
         ("My Star, My Perfect Silence", "Joms"),
     ]
@@ -1170,6 +1269,7 @@ def essayPrompt(state, assets, text):
 # Main Menu
 state.currDialogTree = assets.dialogTrees["mainMenu"]
 state, assets = startDialog(state=state, assets=assets)
+assets.jomaliaSong.play(-1)
 
 # Main Gameplay Loop
 while True:

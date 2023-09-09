@@ -17,12 +17,10 @@ mainMenu = {
         "text": "Welcome to Joms Quest IV",
         "options": {
             "1": "New Adventure",
-            "2": "Load Game (This doesn't work)",
             "3": "Tutorial",
         },
         "next": {
             "1": "begin",
-            "2": "load",
             "3": "tutorial",
         }
     },
@@ -32,29 +30,15 @@ mainMenu = {
         "next": None,
         "events": ["newGame"],
     },
-    "load": {
-        "text": "I told you this doesn't work.",
-        "options": {
-            "1": "New Adventure",
-            "2": "Load Game (This doesn't work)",
-            "3": "Tutorial",
-        },
-        "next": {
-            "1": "begin",
-            "2": "load",
-            "3": "tutorial",
-        }
-    },
+
     "tutorial": {
-        "text": "It's a point and click adventure game. You can figure this out yourself.",
+        "text": "It's a point and click adventure game. Left Click to use, Right Click to examine. You could have figured this out yourself.",
         "options": {
             "1": "New Adventure",
-            "2": "Load Game (This doesn't work)",
             "3": "Tutorial",
         },
         "next": {
             "1": "begin",
-            "2": "load",
             "3": "tutorial",
         }
     },
@@ -65,7 +49,6 @@ settingsMenu = {
         "text": "",
         "options": {
             "4": "Continue",
-            # "5": "New Game", # This doesn't work because it doesnt reset these dicts
             "3": "Exit to Desktop",
         },
         "next": {
@@ -104,35 +87,6 @@ settingsMenu = {
         "options": {},
         "next": None,
         "events": ["newGame"],
-    },
-}
-
-testManDialog = {
-    "start": {
-        "text": "Hello Joms!",
-        "options": {
-            "1": "Give me a wrench!",
-            "2": "Leave"
-        },
-        "next": {
-            "1": "awkward",
-            "2": "Leave",
-        },
-    },
-    "awkward": {
-        "text": "Ok here you go. (You got a Wrench!)",
-        "options": {
-            "1": "Leave"
-        },
-        "next": {
-            "1": "Leave"
-        },
-        "events": ["giveWrench", "wrenchTaken"],
-    },
-    "Leave": {
-        "text": "",
-        "options": {},
-        "next": None,
     },
 }
 
@@ -365,6 +319,7 @@ phoneWaveDialog = {
             "1": "...",
             "2": "leave",
         },
+        "sound": "mayuri",
     },
     "...": {
         "text":  "...",
@@ -430,6 +385,7 @@ keypadDialog = {
         "next": {
             "1": "leave"
         },
+        "sound": "sprinklerSound",
     },
     "leave": {
         "text": "",
@@ -564,6 +520,7 @@ fireKaruDialog = {
             "2": "roll",
             "1": "leave",
         },
+        "sound": "quoiPanic",
     },
     "roll": {
         "text": "**** YOU ****!",
@@ -573,6 +530,7 @@ fireKaruDialog = {
         "next": {
             "1": "leave",
         },
+        "sound": "quoiPanic",
     },
     "leave": {
         "text": "",
@@ -590,6 +548,7 @@ frozenKaruDialog = {
         "next": {
             "1": "leave",
         },
+        "sound": "quoi",
     },
     "leave": {
         "text": "",
@@ -607,6 +566,7 @@ karuDialog = {
         "next": {
             "1": "leave",
         },
+        "sound": "quoi",
     },
     "leave": {
         "text": "",
@@ -648,7 +608,8 @@ thermostatDialog = {
         "next": {
             "1": "leave",
         },
-        "events": ["freezeRoom"]
+        "events": ["freezeRoom"],
+        "sound": "freezeSound",
     },
     "leave": {
         "text": "",
@@ -735,6 +696,7 @@ normDialog = {
         },
         "events": ["givePizza"],
         "image": ("confetti", (0,0)),
+        "sound": "winSound",
     },
 
     "normalDay": {
@@ -814,7 +776,7 @@ computerDialog = {
         "next": {"witcher"},
     },
     "witcher": {
-        "text": "You settle down to watch the entire video in one sitting. As Joe's calming tone washes over you, you have one final thought \"It was worth the wait\"",
+        "text": "You settle down to watch the entire video in one sitting. As Joe's calming tone washes over you, you have one final thought \"It was worth the wait.\"",
         "options": {"1": "The End"},
         "next": {"1": "end"},
     },
@@ -970,14 +932,23 @@ botsephDialog = {
         "text": "Greeting {Patron}, Welcome to {Bar}. What can I get you?",
         "options": {
             "1": "I'd like a drink please.",
+            "4": "Where did the bouncer's body go?",
             "2": "ur a {Bar}",
             "3": "Leave",
         },
         "next": {
             "1": "drink",
+            "4": "bouncer",
             "2": "pupper",
             "3": "leave",
         },
+    },
+    "bouncer": {
+        "text": "It's a plothole.",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {"1": "leave"},
     },
     "pupper": {
         "text": ":pupper:",
@@ -997,9 +968,10 @@ botsephDialog = {
     },
     "juice": {
         "text": "juice.give(). By the time juice.ferment(), {you.age} >= {LEGAL_DRINKING_AGE} will be True.",
-        "options": {"1": "Thanks..."},
+        "options": {"1": "Thanks...?"},
         "next": {"1": "leave"},
-        "events": ["giveJuice"]
+        "events": ["giveJuice"],
+        "sound": "bagSound",
     },
     "leave": {
         "text": "",
@@ -1177,7 +1149,7 @@ beacoiDialog = {
         "next": {"1": "lose"},
     },
     "gun": {
-        "text": "You pick up the Gun and stand ready. \"BEGIN!\" Shouted Beacoi as he rusheds you. You take and and fire dead-center on your target. Beacoi effortlessly deflect the bullet with his knife-like talons.",
+        "text": "You pick up the Gun and stand ready. \"BEGIN!\" Shouted Beacoi as he rushes you. You take aim and fire dead-center on your target. Beacoi effortlessly deflect the bullet with his knife-like talons.",
         "options": {"1": "Continue..."},
         "next": {"1": "lose"},
     },
@@ -1191,6 +1163,7 @@ beacoiDialog = {
         "options": {"1": "Ow..."},
         "next": {"1": "leave"},
         "events": ["loseFight"],
+        "sound": "oof",
     },
 }
 
@@ -1203,11 +1176,13 @@ beacoiWinDialog = {
         "next": {
             "2": "victory",
         },
+        "sound": "homerun",
     },
     "victory": {
         "text": "Not bad kid. No one's ever managed to beat me in a fight. For that, I will give you my most prized possession, a mint condition Space Jam DVD.",
         "options": {"1": "Leave"},
         "next": {"1": "leave"},
+        "sound": "bagSound",
     },
     "leave": {
         "text": "",
