@@ -398,11 +398,83 @@ momsDialog = {
     "start": {
         "text": "How are you doing honey?",
         "options": {
+            "1": "Hi Moms",
             "2": "Leave",
         },
         "next": {
+            "1": "hi",
             "2": "leave",
         },
+    },
+    "hi": {
+        "text": "You better hurry to school before you're late. You have a big quiz today. Also while you're out can you go get the microwave fixed?",
+        "options": {
+            "1": "Leave",
+        },
+        "next": {"1": "leave"},
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+momsPastDialog = {
+    "start": {
+        "text": "Hey there handsome.",
+        "options": {
+            "3": "Hi Moms, I'm your son from the future.",
+            "1": "How do I get Joms Sr off the computer?",
+            "2": "Leave",
+        },
+        "next": {
+            "3": "son",
+            "1": "computer",
+            "2": "leave",
+        },
+    },
+    "son": {
+        "text": "Oh you're into roleplay huh? You can call me \"Mommy\" then *wink*.",
+        "options": {
+            "1": "How do I get Joms Sr off the computer?",
+            "2": "Leave",
+        },
+        "next": {
+            "1": "computer",
+            "2": "leave",
+        },
+    },
+    "computer": {
+        "text": "*Sigh* All he does all day is read JADS and watch anime. Doesn't he know I need \"Entertainment\" too?",
+        "options": {
+            "1": "What kind of entertainment?",
+            "2": "Leave",
+        },
+        "next": {
+            "1": "entertainment",
+            "2": "leave",
+        },
+    },
+    "entertainment": {
+        "text": "Oh, you know the kind where you [DIALOG PENDING ESRB APPROVAL] with ketchup. Maybe you'd be interested? *wink*",
+        "options": {
+            "1": "No",
+            "2": "NO",
+            "3": "Nonononooononoononoo",
+            "4": "NOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+        },
+        "next": {
+            "1": "no",
+            "2": "no",
+            "3": "no",
+            "4": "no",
+        },
+    },
+    "no": {
+        "text": "What a shame. Let me know if you change your mind.",
+        "options": {"1": "Leave"},
+        "next": {"1": "leave"},
     },
     "leave": {
         "text": "",
@@ -418,8 +490,79 @@ jomsSrDialog = {
             "2": "Leave",
         },
         "next": {
+            "1": "witcher",
             "2": "leave",
         },
+    },
+    "witcher": {
+        "text": "Ah yes, the Witcher 3 video. I remember a long time ago, Joseph Anderson was just about to release the video, but something regrettable happened.",
+        "options": {"1": "Continue..."},
+        "next": {"1": "witcher2"},
+    },
+    "witcher2": {
+        "text": "It was a day a lot like this one. I even remember the exact date, July 3rd 2011. In JADS we were all voting for which game Joe should stream that Christmas. It was an exciting time.",
+        "options": {"1": "Continue..."},
+        "next": {"1": "witcher3"},
+    },
+    "witcher3": {
+        "text": "You see, I had cast the deciding vote for Telltale-mas, narrowly beating Feliz Navi-dango (A Lucas Arts Adventure Game Holiday Celebration).",
+        "options": {"1": ":HeinzGate:"},
+        "next": {"1": "witcher4"},
+    },
+    "witcher4": {
+        "text":  "Who knows what would have happened had I voted differently. Maybe the Witcher 3 video would be out now. I will always live with regret for my choice that day.",
+        "options": {"1": "Leave"},
+        "next": {"1": "leave"},
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
+jomsSrPastDialog = {
+    "start": {
+        "text": "Can't talk now, someone in JADS just said Dark Souls 2 was the worst Soulslike.",
+        "options": {
+            "1": "I'm your son from the future.",
+            "2": "Can I get on the computer?",
+            "3": "Leave",
+        },
+        "next": {
+            "1": "son",
+            "2": "computer",
+            "3": "leave",
+        },
+    },
+    "son": {
+        "text": "Hi \"your son from the future\" I'm Joms Sr",
+        "options": {
+            "1": "Why are you \"Joms Sr\" if you don't have a child yet?",
+            "2": "Can I get on the computer?",
+            "3": "Leave",
+        },
+        "next": {
+            "1": "jomsSr",
+            "2": "computer",
+            "3": "leave",
+        },
+    },
+    "jomsSr": {
+        "text": "I'll tell you when you're older.",
+        "options": {
+            "2": "Can I get on the computer?",
+            "3": "Leave",
+        },
+        "next": {
+            "2": "computer",
+            "3": "leave",
+        },
+    },
+    "computer": {
+        "text": "Shhhh Joe is streaming.",
+        "options": {"1": "Leave"},
+        "next": {"1": "leave"},
     },
     "leave": {
         "text": "",
@@ -430,11 +573,37 @@ jomsSrDialog = {
 
 inventorDialog = {
     "start": {
-        "text": "Hello",
+        "text": "Hello Joms",
         "options": {
+            "3": "What do you do here?",
+            "2": "What are you doing in the bathroom?",
             "1": "Leave",
         },
         "next": {
+            "3": "invent",
+            "2": "bathroom",
+            "1": "leave",
+        },
+    },
+    "invent": {
+        "text": "I invent fantastic creations. Robots, AI language models, home appliances, I make it all. Just give me the supplies and I can whip you up something.",
+        "options": {
+            "2": "What are you doing in the bathroom?",
+            "1": "Leave",
+        },
+        "next": {
+            "2": "bathroom",
+            "1": "leave",
+        },
+    },
+    "bathroom": {
+        "text": "All the greatest ideas are conceived on the toilet. Plus, when I'm bored I can always play a set of Melty Blood in one of the stalls.",
+        "options": {
+            "3": "What do you do here?",
+            "1": "Leave",
+        },
+        "next": {
+            "3": "invent",
             "1": "leave",
         },
     },
@@ -559,14 +728,25 @@ frozenKaruDialog = {
 
 karuDialog = {
     "start": {
-        "text": "Hello",
+        "text": "Hi Whore! <3",
+        "options": {
+            "1": "Why is there a batting cage in the bathroom?",
+            "3": "Leave",
+        },
+        "next": {
+            "1": "batting",
+            "3": "leave",
+        },
+        "sound": "quoi",
+    },
+    "batting": {
+        "text": "I know right? It's so pedestrian. My last school's bathroom had catering and live ballet performances.",
         "options": {
             "1": "Leave",
         },
         "next": {
             "1": "leave",
         },
-        "sound": "quoi",
     },
     "leave": {
         "text": "",
@@ -769,6 +949,7 @@ computerDialog = {
             "3": "discord",
             "5": "leave",
         },
+        "events": ["whereIsWitcher"],
     },
     "victory": {
         "text": "You check Youtube, and there you see it. The Witcher 3 - Worse Than Breaking Bad by Joeseph Anderson. Total runtime 239 Hours and 53 Minutes.",

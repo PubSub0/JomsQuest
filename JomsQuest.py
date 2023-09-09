@@ -5,8 +5,7 @@ from dialog import *
 # Initializing stuff needed for pygame
 # Default init stuff
 pygame.init()
-# TODO change this to 1280x720
-# screen = pygame.display.set_mode((800, 600))
+pygame.mixer.init()
 screen = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Joms Quest IV: The Search for a Better Subtitle (Version 1.1.0.37)")
 clock = pygame.time.Clock()
@@ -500,7 +499,8 @@ class BatRack(Pickupable):
 
 class PhoneWaveActive(Selectable):
     def use(self, state, assets):
-        assets.timeTravelSound.play()
+        if not assets.sfxChannel.get_busy():
+            assets.sfxChannel.play(assets.timeTravelSound)
         if state.currRoom == assets.kitchen:
             state.currRoom = assets.pastKitchen
         else:
@@ -630,7 +630,7 @@ class Assets(object):
         self.joeWhat = pygame.mixer.Sound("Audio/WHAT.wav")
         self.joeWhat.set_volume(.3)
         self.mayuri = pygame.mixer.Sound("Audio/mayuri.mp3")
-        self.mayuri.set_volume(.2)
+        self.mayuri.set_volume(.1)
         self.quoi = pygame.mixer.Sound("Audio/quoi.mp3")
         self.quoiPanic = pygame.mixer.Sound("Audio/quoiPanic.mp3")
         self.bagSound = pygame.mixer.Sound("Audio/bagSound.mp3")
@@ -656,6 +656,7 @@ class Assets(object):
         self.fireSound.set_volume(.3)
         self.freezeSound = pygame.mixer.Sound("Audio/freezeSound.mp3")
         self.freezeSound.set_volume(.3)
+        self.sfxChannel = pygame.mixer.Channel(1)
 
         self.soundLookup = {
             "mayuri": self.mayuri,
@@ -678,7 +679,9 @@ class Assets(object):
             "phoneWaveDialog": phoneWaveDialog,
             "keypadDialog": keypadDialog,
             "momsDialog": momsDialog,
+            "momsPastDialog": momsPastDialog,
             "jomsSrDialog": jomsSrDialog,
+            "jomsSrPastDialog": jomsSrPastDialog,
             "inventorDialog": inventorDialog,
             "trainDialog": trainDialog,
             "karuDialog": karuDialog,
@@ -758,9 +761,9 @@ class Assets(object):
         self.phoneWave = NPC(pos=(170,129), name="PhoneWave", image=pygame.image.load("graphics/phonewave.png"), examine="It's the PhoneWave (Name Subject To Change)", dialogTree=self.dialogTrees["phoneWaveDialog"])
         self.keypad = NPC(pos=(500,330), name="Emergancy Keypad", image=pygame.image.load("graphics/keypad.png"), examine="How does this help in the event of an emergancy?", dialogTree=self.dialogTrees["keypadDialog"])
         self.moms = NPC(pos=(400,300), name="Moms", image=pygame.image.load("graphics/moms.png"), examine="It's Momma Joms, Moms!", dialogTree=self.dialogTrees["momsDialog"])
-        self.momsPast = PastMoms(pos=(400,300), name="Moms", image=pygame.image.load("graphics/momsPast.png"), examine="It's Momma Joms, Moms!", dialogTree=self.dialogTrees["momsDialog"])
+        self.momsPast = PastMoms(pos=(400,300), name="Moms", image=pygame.image.load("graphics/momsPast.png"), examine="It's Momma Joms, Moms!", dialogTree=self.dialogTrees["momsPastDialog"])
         self.jomsSr = NPC(pos=(800,300), name="Joms Sr.", image=pygame.image.load("graphics/jomsSr.png"), examine="It's my dad, Joms Sr!", dialogTree=self.dialogTrees["jomsSrDialog"])
-        self.jomsSrPast = JomsSrPast(pos=(650,300), name="Joms Sr.", image=pygame.image.load("graphics/jomsSrPast.png"), examine="It's my dad, Joms Sr!", dialogTree=self.dialogTrees["jomsSrDialog"])
+        self.jomsSrPast = JomsSrPast(pos=(650,300), name="Joms Sr.", image=pygame.image.load("graphics/jomsSrPast.png"), examine="It's my dad, Joms Sr!", dialogTree=self.dialogTrees["jomsSrPastDialog"])
         self.kusoro = NPC(pos=(0,220), name="Hastily Drawn Axolotl Professor", image=pygame.image.load("graphics/kusoro.png"), examine="It's my teacher, Hastily Drawn Axolotl Professor.", dialogTree=self.dialogTrees["quizDialog"])
         self.nodja = Nodja(pos=(365,300), name="Suspicious Inventor", image=pygame.image.load("graphics/nodja.png"), examine="Suspicious blue man hanging out in the bathroom", dialogTree=self.dialogTrees["inventorDialog"])
         self.train = Train(pos=(500,0), name="Choo Choo Charon", image=pygame.image.load("graphics/train.png"), examine="Hop aboard the Maroon Vista!", dialogTree=self.dialogTrees["trainDialog"])
@@ -988,8 +991,10 @@ def setTime(state, assets):
 def freezeRoom(state, assets):
     state.currRoom.selectables.remove(assets.karu)
     state.currRoom.selectables.append(assets.frozenKaru)
+    inventorDialog["start"]["options"].pop("1")
     inventorDialog["start"]["options"]["freeze"] = "Help, Karu is frozen solid!"    
     inventorDialog["start"]["next"]["freeze"] = "freeze"
+    inventorDialog["start"]["options"]["1"] = "Leave"
     thermostatDialog["start"]["options"].pop("1")
     thermostatDialog["start"]["options"].pop("2")
     thermostatDialog["start"]["text"] = "The thermostate controls are frozen solid. It no longer works."
@@ -1043,6 +1048,12 @@ def iVoted(state, assets):
 def giveJuice(state, assets):
     state.currInventory.append(assets.juice)
     botsephDialog["start"]["options"].pop("1")
+    return (state, assets)
+
+def whereIsWitcher(state, assets):
+    jomsSrDialog["start"]["options"].pop("2")
+    jomsSrDialog["start"]["options"]["1"] = "When is Joe going to release the Witcher 3 Video?"
+    jomsSrDialog["start"]["options"]["2"] = "Leave"
     return (state, assets)
 
 def credits(state, assets):
@@ -1137,6 +1148,7 @@ eventLookup = {
     "credits": credits,
     "iVoted": iVoted,
     "giveJuice": giveJuice,
+    "whereIsWitcher": whereIsWitcher,
 
     # Quiz
     "resetQuizScore" : resetQuizScore,
