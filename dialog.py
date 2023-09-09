@@ -101,7 +101,7 @@ quizDialog = {
         },
     },
     "sit": {
-        "text": "Take whatever seat you can find when you're ready. Just remember you need to get a perfect score to pass this exam.",
+        "text": "Take whatever seat you can find when you're ready. Just remember: you need to get a perfect score to pass this exam.",
         "options": {
             "1": "Start Exam",
             "2": "I'm not ready.",
@@ -251,7 +251,7 @@ quizDialog = {
         "events": ["correctAnswer"]
     },
     "chicken": {
-        "text": "Culinary Arts is up next. You are at a resteraunt. You are full, but there is a single chicken wing left. What should you do?",
+        "text": "Culinary Arts is up next. You are at a restaurant. You are full, but there is a single chicken wing left. What should you do?",
         "options": {
             "1": "Leave the wing there",
             "2": "Take the wing home",
@@ -293,7 +293,7 @@ quizDialog = {
         "events": ["essayQuestion", "scoreQuiz"]
     },
     "results": {
-        "text": "You did not pass the exam. Maybe try applying youself next time.",
+        "text": "You did not pass the exam. Maybe try applying youself next time?",
         "options": {
             "1": "Leave",
         },
@@ -420,9 +420,26 @@ momsDialog = {
     },
 }
 
+momsFutureDialog = {
+    "start": {
+        "text": "Oh, there you are! Thanks for getting that microwave fixed, sweetie. I made a big batch of Cookies to celebrate. They should be done in just a minute, so go on and wait in your room - I'll call you when they're done.",
+        "options": {
+            "2": "Leave",
+        },
+        "next": {
+            "2": "leave",
+        },
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
 momsPastDialog = {
     "start": {
-        "text": "Hey there handsome.",
+        "text": "Hey there gorgeous.",
         "options": {
             "3": "Hi Moms, I'm your son from the future.",
             "1": "How do I get Joms Sr off the computer?",
@@ -483,6 +500,19 @@ momsPastDialog = {
     },
 }
 
+momsPastLivingDialog = {
+    "start": {
+        "text": "He finally came out of his room! Now's my chance...",
+        "options": {"1": "Leave"},
+        "next": {"1": "leave"},
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
 jomsSrDialog = {
     "start": {
         "text": "How are you doing sport?",
@@ -491,8 +521,14 @@ jomsSrDialog = {
         },
         "next": {
             "1": "witcher",
+            "4": "spaceJam",
             "2": "leave",
         },
+    },
+    "spaceJam": {
+        "text": "Well, Sport, I'm not sure! I've been so busy watching this Space Jam DVD that I haven't had the time to check.",
+        "options": {"1": "Leave"},
+        "next": {"1": "leave"},
     },
     "witcher": {
         "text": "Ah yes, the Witcher 3 video. I remember a long time ago, Joseph Anderson was just about to release the video, but something regrettable happened.",
@@ -571,6 +607,19 @@ jomsSrPastDialog = {
     },
 }
 
+jomsSrPastLivingDialog = {
+    "start": {
+        "text": "He keeps repeating the words \"Space Jam DVD.\" We don't even have a TV.",
+        "options": {"1": "Leave"},
+        "next": {"1": "leave"},
+    },
+    "leave": {
+        "text": "",
+        "options": {},
+        "next": None,
+    },
+}
+
 inventorDialog = {
     "start": {
         "text": "Hello Joms",
@@ -586,7 +635,7 @@ inventorDialog = {
         },
     },
     "invent": {
-        "text": "I invent fantastic creations. Robots, AI language models, home appliances, I make it all. Just give me the supplies and I can whip you up something.",
+        "text": "I invent fantastic creations. Robots, AI language models, home appliances -- I make it all. Just give me the supplies and I can whip you up something.",
         "options": {
             "2": "What are you doing in the bathroom?",
             "1": "Leave",
@@ -608,7 +657,7 @@ inventorDialog = {
         },
     },
     "freeze": {
-        "text": "I have just the thing. It's the Portable Heater (Fuel not Included)! Just fill it up with some low-octain fuel and flip the switch.",
+        "text": "I have just the thing. It's the Portable Heater (Fuel not Included)! Just fill it up with some low-octane fuel and flip the switch.",
         "options": {
             "1": "Where am I supposed to get fuel?",
             "2": "Thanks!",
@@ -661,7 +710,7 @@ trainDialog = {
         },
     },
     "iraq": {
-        "text": "Iraq",
+        "text": "Iraq.",
         "options": {
             "2": "I don't have a ticket.",
             "1": "Leave",
@@ -731,13 +780,26 @@ karuDialog = {
         "text": "Hi Whore! <3",
         "options": {
             "1": "Why is there a batting cage in the bathroom?",
+            "2": "Hi whooooore! <3",
+            "3": "Leave",
+        },
+        "next": {
+            "1": "batting",
+            "2": "whore",
+            "3": "leave",
+        },
+        "sound": "quoi",
+    },
+    "whore": {
+        "text": "Oh, FINALLY! A proper greeting! I was beginning to think I was the only cultured person in this whole town.",
+        "options": {
+            "1": "Why is there a batting cage in the bathroom?",
             "3": "Leave",
         },
         "next": {
             "1": "batting",
             "3": "leave",
         },
-        "sound": "quoi",
     },
     "batting": {
         "text": "I know right? It's so pedestrian. My last school's bathroom had catering and live ballet performances.",
@@ -925,7 +987,7 @@ computerDialog = {
         },
     },
     "discord": {
-        "text": "You log onto discord and check #dragons-den. Somehow Piss-course returned. You make the wise decision and not get involved.",
+        "text": "You log onto discord and check #dragons-den. Somehow Piss-course returned. You make the wise decision to not get involved.",
         "options": {
             "1": "Twitch",
             "4": "Youtube",
@@ -938,7 +1000,7 @@ computerDialog = {
         },
     },
     "youtube": {
-        "text": "You check the recent uploads of your favorite Youtuber Joseph Anderson to see if he uploaded the Witcher 3 video yet. It looks like the Witcher 3 video has not been released. Where could it be?",
+        "text": "You check the recent uploads of your favorite Youtuber, Joseph Anderson, to see if he uploaded the Witcher 3 video yet. It doesn't appear to have been released. Where could it be?",
         "options": {
             "1": "Twitch",
             "3": "Discord",
@@ -952,12 +1014,12 @@ computerDialog = {
         "events": ["whereIsWitcher"],
     },
     "victory": {
-        "text": "You check Youtube, and there you see it. The Witcher 3 - Worse Than Breaking Bad by Joeseph Anderson. Total runtime 239 Hours and 53 Minutes.",
+        "text": "You check Youtube... and there it is. \"The Witcher 3 - Worse Than Breaking Bad\" by Joseph Anderson. Total runtime: 239 hours and 53 minutes.",
         "options": {"1": "Watch Witcher 3 Video"},
         "next": {"witcher"},
     },
     "witcher": {
-        "text": "You settle down to watch the entire video in one sitting. As Joe's calming tone washes over you, you have one final thought \"It was worth the wait.\"",
+        "text": "You settle down to watch the entire video in one sitting. As Joe's calming tone washes over you, you have one final thought... \"It was worth the wait.\"",
         "options": {"1": "The End"},
         "next": {"1": "end"},
     },
@@ -1021,7 +1083,7 @@ pastComputerDialog = {
         "events": ["iVoted"],
     },
     "youtube": {
-        "text": "You check the recent uploads of your favorite Youtuber Joseph Anderson to see if he uploaded the Witcher 3 video yet. It looks like the Witcher 3 video has not been released. Where could it be?",
+        "text": "You check the recent uploads of your favorite Youtuber, Joseph Anderson, to see if he uploaded the Witcher 3 video yet. It doesn't appear to have been released. Where could it be?",
         "options": {
             "1": "Twitch",
             "3": "Discord",
@@ -1125,7 +1187,7 @@ botsephDialog = {
         },
     },
     "bouncer": {
-        "text": "It's a plothole.",
+        "text": "It's a {Plothole}.",
         "options": {
             "1": "Leave",
         },
@@ -1164,7 +1226,7 @@ botsephDialog = {
 
 falzarDialog = {
     "start": {
-        "text": "ID Please",
+        "text": "ID, please.",
         "options": {
             "1": "Can you let me in?",
             "2": "Leave",
@@ -1175,7 +1237,7 @@ falzarDialog = {
         },
     },
     "letme": {
-        "text": "Sure, show me your ID first",
+        "text": "Sure, show me your ID first.",
         "options": {
             "1": "I don't have an ID.",
             "2": "Leave"
@@ -1186,9 +1248,9 @@ falzarDialog = {
         },
     },
     "id": {
-        "text": "Listen kid, I can't let you in without an ID and it's almost lunch time so get out of here before I become a Hostile Crocodile.",
+        "text": "Listen kid, I can't let you in without an ID. It's almost lunch time, so scram before I become a Hostile Crocodile.",
         "options": {
-            "1": "Atleast tell me what's in the bar.",
+            "1": "At least tell me what's in the bar.",
             "2": "Leave",
         },
         "next": {
@@ -1264,7 +1326,7 @@ beacoiDialog = {
         }, 
     },
     "girlExplain": {
-        "text": "Beacoi Ofsnoe believes in equal rights (and left in this case), but the Women's league is on Thursdays.",
+        "text": "Beacoi Osfnoe believes in Women's Rights (and Lefts, in this case), but the Women's League is on Thursdays.",
         "options": {
             "1": "Continue...",
         },
@@ -1309,13 +1371,13 @@ beacoiDialog = {
         "options": {
             "1": "Shot Put Ball",
             "2": "Gun",
-            "3": "Katanna",
+            "3": "Katana",
             "4": "Nevermind I'm scared.",
         },
         "next": {
             "1": "shotput",
             "2": "gun",
-            "3": "katanna",
+            "3": "katana",
             "4": "leave",
         },
     },
@@ -1325,17 +1387,17 @@ beacoiDialog = {
         "next": {"1": "leave"},
     },
     "shotput": {
-        "text": "You pick up the Shot Put Ball and stand ready. \"BEGIN!\" Shouted Beacoi as he rushes you. You dropped everything you were holding, but since you didn't create an elaborate Rube Goldberg death trap before hand, it was ineffective.",
+        "text": "You pick up the Shot Put Ball and stand ready. With a ring of the bell, Beacoi rushes you. You dropped everything you were holding, but since you didn't create an elaborate Rube Goldberg death trap before hand, it was ineffective.",
         "options": {"1": "Continue..."},
         "next": {"1": "lose"},
     },
     "gun": {
-        "text": "You pick up the Gun and stand ready. \"BEGIN!\" Shouted Beacoi as he rushes you. You take aim and fire dead-center on your target. Beacoi effortlessly deflect the bullet with his knife-like talons.",
+        "text": "You pick up the Gun and stand ready. With a ring of the bell, Beacoi rushes you. You take aim and fire dead-center on your target. Beacoi effortlessly deflect the bullet with his razor-sharp, knife-like talons.",
         "options": {"1": "Continue..."},
         "next": {"1": "lose"},
     },
-    "katanna": {
-        "text": "You pick up the Katanna and stand ready. \"BEGIN!\" Shouted Beacoi as he rushes you. As you attempt to parry Beacoi's slashes, the Glorious Nippon Steel folded over a thousand times shatters into a thousand pieces.",
+    "katana": {
+        "text": "You pick up the Katana and stand ready. With a ring of the bell, Beacoi rushes you. As you attempt to parry Beacoi's slashes, the Glorious Nippon Steel folded over a thousand times shatters into a thousand pieces.",
         "options": {"1": "Continue..."},
         "next": {"1": "lose"},
     },
@@ -1360,7 +1422,7 @@ beacoiWinDialog = {
         "sound": "homerun",
     },
     "victory": {
-        "text": "Not bad kid. No one's ever managed to beat me in a fight. For that, I will give you my most prized possession, a mint condition Space Jam DVD.",
+        "text": "Not bad, kid. No one's ever managed to beat me in a fight. For that, I will give you my most prized possession, a mint condition Space Jam DVD.",
         "options": {"1": "Leave"},
         "next": {"1": "leave"},
         "sound": "bagSound",

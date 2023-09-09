@@ -258,6 +258,12 @@ class JomsSrPast(NPC):
             self.pos = assets.jomsSr.pos
             assets.pastLivingRoom.selectables.append(self)
             state.dialog = "\"Could that be? It is! A MINT CONDITION SPACE JAM DVD! I must watch it right away!\" Just like that, Joms Sr runs into the living room to watch the Space Jam DVD."
+            self.dialogTree = assets.dialogTrees["jomsSrPastLivingDialog"]
+            assets.momsPast.dialogTree = assets.dialogTrees["momsPastLivingDialog"]
+            assets.moms.dialogTree = assets.dialogTrees["momsFutureDialog"]
+            if "1" in jomsSrDialog["start"]["options"]:
+                jomsSrDialog["start"]["options"].pop("1")
+                jomsSrDialog["start"]["options"]["4"] = "When is Joe going to release the Witcher 3 Video?"
             return (state, assets)
         else:
             return super().useWith(state, assets)
@@ -299,7 +305,7 @@ class Falzar(NPC):
             state.currRoom.selectables.remove(self)
             state.currInventory.remove(state.selectedItem)
             state.currInventory.append(assets.popcornEmpty)
-            state.dialog = "You offer the popcorn to the crocodile who scoops a handful. As they eat the popcorn, its effect is immediate. The crocodile wavers before falling face first onto the floor."
+            state.dialog = "You offer the popcorn to the bouncer, who scoops a handful. As he eats it, the effect is immediate. He wavers before falling face first onto the floor."
             assets.kritterSfx.play()
             return (state, assets)
         elif state.selectedItem == assets.pizza:
@@ -379,7 +385,7 @@ class Nodja(NPC):
             state.currInventory.remove(assets.microwaveItem)
             state.currInventory.append(assets.phoneWaveItem)
             assets.wrenchSound.play()
-            state.dialog = "A broken microwave huh? I can fix this and make a few improvements."
+            state.dialog = "A broken microwave, huh? I can fix this -- and even make a few improvements. (You received PhoneWave (Name Subject to Change!))"
         else:
             return super().useWith(state, assets)
         return (state, assets)
@@ -527,7 +533,7 @@ class Fridge(Selectable):
             state.currInventory.append(assets.highProofDrink)
             state.drinkInFridge = False
             assets.bagSound.play()
-            state.dialog = "Looks like the juice fermented into alchohol. (You Recieved High-Proof Alchohol)"
+            state.dialog = "Looks like the juice fermented into alchohol. (You received High-Proof Alchohol)"
             return (state, assets)
         else:
             return super().use(state, assets)
@@ -562,7 +568,7 @@ class BreakGlass(Selectable):
                 state.currRoom.selectables.remove(self)
                 state.currRoom.selectables.append(assets.keypad)
             else:
-                state.dialog = "There's no emergancy. I shouldn't break the glass."
+                state.dialog = "There's no emergency. I shouldn't break the glass."
         return (state, assets)
 
 # Global Inventory Icon
@@ -697,10 +703,13 @@ class Assets(object):
             "botsephDialog": botsephDialog,
             "beacoiDialog": beacoiDialog,
             "beacoiWinDialog": beacoiWinDialog,
+            "jomsSrPastLivingDialog": jomsSrPastLivingDialog,
+            "momsPastLivingDialog": momsPastLivingDialog,
+            "momsFutureDialog": momsFutureDialog,
         }
 
         # Inventory Items
-        brickExamine = "A kitchen brick. A useful cooking tool and nutritious too."
+        brickExamine = "A kitchen brick. A useful cooking tool -- and nutritious too."
         brickImage = pygame.transform.scale(pygame.image.load("graphics/brick.png"), (100,50))
         self.brickItem = Item(pos=(0,0), name="Brick", image=brickImage, examine=brickExamine)
         mwExamine = "It's a Genbu'd Microwave."
@@ -718,7 +727,7 @@ class Assets(object):
         self.highProofDrink = Item((0,0), name="High-Proof Alchohol", image=pygame.image.load("graphics/bottle.png"), examine="I don't think I'm old enough to have this.")
         self.juice = Item((0,0), name="Juice Box", image=pygame.image.load("graphics/juice.png"), examine="A fruity drink that never expires.")
         self.heater = Heater((0,0), name="Portable Heater (Fuel Not Included)", image=pygame.image.load("graphics/heater.png"), examine="This is useless without fuel.")
-        self.heaterFueled = Item((0,0), name="Portable Heater (Fuel Included)", image=pygame.image.load("graphics/heaterFueled.png"), examine="This is useless without fuel.")
+        self.heaterFueled = Item((0,0), name="Portable Heater (Fuel Included)", image=pygame.image.load("graphics/heaterFueled.png"), examine="Fueled up and ready to go.")
         self.popcornEmpty = Item((0,0), name="Popcorn Kernels", image=pygame.image.load("graphics/emptyPopcorn.png"), examine="There's nothing left except for popcorn kernels.")
         self.greatVegetables = Item((0,0), name="GREAT VEGETABLES", image=pygame.image.load("graphics/greatVegetables.png"), examine="GREAT VEGETABLES")
         self.pizza = Item((0,0), name="Norm's Pineapple Pizza", image=pygame.image.load("graphics/pizza.png"), examine="Pineapple on Pizza? The perfect balance of sweet and savory!")
@@ -745,48 +754,48 @@ class Assets(object):
         self.microwave = Microwave(pos=(170,129), invItem=self.microwaveItem, name="Microwave", image=pygame.image.load("graphics/microwave.png"), examine=mwExamine)
         self.socket = Socket(pos=(250,145), name="Electrical Outlet", image=pygame.image.load("graphics/socket.png"), examine="An electrical outlet.")
         self.phoneWaveActive = PhoneWaveActive(pos=(170,129), name="PhoneWave (Name Subject To Change)", image=pygame.image.load("graphics/phonewaveActive.png"), examine="It's the PhoneWave (Name Subject to Change)!")
-        self.breakGlass = BreakGlass(pos=(500,330), name="Emergency Break Glass", image=pygame.image.load("graphics/breakGlass.png"), examine="\"Incase of emergancy, break glass.\"")
-        self.sprinkler1 = Selectable(pos=(475,110), name="Sprinkler", image=pygame.image.load("graphics/sprinklersOff.png"), examine="An emergancy sprinkler programmed to turn on at 7:30.")
-        self.sprinkler2 = Selectable(pos=(910,110), name="Sprinkler", image=pygame.image.load("graphics/sprinklersOff.png"), examine="An emergancy sprinkler programmed to turn on at 7:30.")
+        self.breakGlass = BreakGlass(pos=(500,330), name="Emergency Break Glass", image=pygame.image.load("graphics/breakGlass.png"), examine="\"In case of emergency, break glass.\"")
+        self.sprinkler1 = Selectable(pos=(475,110), name="Sprinkler", image=pygame.image.load("graphics/sprinklersOff.png"), examine="An emergency sprinkler programmed to turn on at 7:30.")
+        self.sprinkler2 = Selectable(pos=(910,110), name="Sprinkler", image=pygame.image.load("graphics/sprinklersOff.png"), examine="An emergency sprinkler programmed to turn on at 7:30.")
         self.batRack = BatRack(pos=(1050,550), invItem=self.batItem, name="Bat Rack", image=pygame.image.load("graphics/batRack.png"), examine="A bat rack, it's a rack for bats, a bat rack.")
         self.batRackEmpty = Selectable(pos=(1050,550), name="Bat Rack", image=pygame.image.load("graphics/batRackEmpty.png"), examine="I don't even own a bat, let alone many bats that would nessesitate a rack.")
-        self.trashCan = TrashCan(pos=(170,400), name="Trash Can", image=pygame.image.load("graphics/trashCan.png"), examine="A dirty trashcan with a bag of uneaten popcorn ontop.")
+        self.trashCan = TrashCan(pos=(170,400), name="Trashcan", image=pygame.image.load("graphics/trashCan.png"), examine="A dirty trashcan with a bag of uneaten popcorn on top.")
         self.sink = Selectable(pos=(203,305), name="Sink", image=pygame.image.load("graphics/sink.png"), examine="A dirty sink.", useTxt="I don't need to pee.")
-        self.stadium = Selectable(pos=(940,310), name="Stadium", image=pygame.image.load("graphics/stadium.png"), examine="The world famous Moncton Stadium", useTxt="There's nothing happening there.")
+        self.stadium = Selectable(pos=(940,310), name="Stadium", image=pygame.image.load("graphics/stadium.png"), examine="The world-famous Moncton Stadium", useTxt="There's nothing happening there.")
         self.cave = Selectable(pos=(0,240), name="Dragon's Den", image=pygame.image.load("graphics/dragonsDen.png"), examine="\"Beware of Dragon\"", useTxt="You hear a terrifying roar and decide not to enter.", useSound=self.joeWhat)
         # Global selectables container
         self.global_selectables = [self.bag, self.settings, self.portrait]
 
         # NPCs
-        self.phoneWave = NPC(pos=(170,129), name="PhoneWave", image=pygame.image.load("graphics/phonewave.png"), examine="It's the PhoneWave (Name Subject To Change)", dialogTree=self.dialogTrees["phoneWaveDialog"])
-        self.keypad = NPC(pos=(500,330), name="Emergancy Keypad", image=pygame.image.load("graphics/keypad.png"), examine="How does this help in the event of an emergancy?", dialogTree=self.dialogTrees["keypadDialog"])
+        self.phoneWave = NPC(pos=(170,129), name="PhoneWave", image=pygame.image.load("graphics/phonewave.png"), examine="It's the PhoneWave (Name Subject To Change).", dialogTree=self.dialogTrees["phoneWaveDialog"])
+        self.keypad = NPC(pos=(500,330), name="emergency Keypad", image=pygame.image.load("graphics/keypad.png"), examine="How does this help in the event of an emergency?", dialogTree=self.dialogTrees["keypadDialog"])
         self.moms = NPC(pos=(400,300), name="Moms", image=pygame.image.load("graphics/moms.png"), examine="It's Momma Joms, Moms!", dialogTree=self.dialogTrees["momsDialog"])
         self.momsPast = PastMoms(pos=(400,300), name="Moms", image=pygame.image.load("graphics/momsPast.png"), examine="It's Momma Joms, Moms!", dialogTree=self.dialogTrees["momsPastDialog"])
         self.jomsSr = NPC(pos=(800,300), name="Joms Sr.", image=pygame.image.load("graphics/jomsSr.png"), examine="It's my dad, Joms Sr!", dialogTree=self.dialogTrees["jomsSrDialog"])
         self.jomsSrPast = JomsSrPast(pos=(650,300), name="Joms Sr.", image=pygame.image.load("graphics/jomsSrPast.png"), examine="It's my dad, Joms Sr!", dialogTree=self.dialogTrees["jomsSrPastDialog"])
         self.kusoro = NPC(pos=(0,220), name="Hastily Drawn Axolotl Professor", image=pygame.image.load("graphics/kusoro.png"), examine="It's my teacher, Hastily Drawn Axolotl Professor.", dialogTree=self.dialogTrees["quizDialog"])
-        self.nodja = Nodja(pos=(365,300), name="Suspicious Inventor", image=pygame.image.load("graphics/nodja.png"), examine="Suspicious blue man hanging out in the bathroom", dialogTree=self.dialogTrees["inventorDialog"])
+        self.nodja = Nodja(pos=(365,300), name="Suspicious Inventor", image=pygame.image.load("graphics/nodja.png"), examine="A suspicious blue man who hangs out in the bathroom.", dialogTree=self.dialogTrees["inventorDialog"])
         self.train = Train(pos=(500,0), name="Choo Choo Charon", image=pygame.image.load("graphics/train.png"), examine="Hop aboard the Maroon Vista!", dialogTree=self.dialogTrees["trainDialog"])
         fountainOnImg = pygame.transform.scale(pygame.image.load("graphics/Fountain_On.png"), (400,333))
         fountainIceImg = pygame.transform.scale(pygame.image.load("graphics/Fountain_Ice.png"), (400,333))
         fountainFireImg = pygame.transform.scale(pygame.image.load("graphics/Fountain_Fire.png"), (400,333))
         fountainChickenImg = pygame.transform.scale(pygame.image.load("graphics/Fountain_Chicken.png"), (400,333))
         fountainScorchImg = pygame.transform.scale(pygame.image.load("graphics/Fountain_Scorched.png"), (400,333))
-        self.karu = NPC(pos=(500,300), name="Karu", image=fountainOnImg, examine="It's Karu swimming in the fountain.", dialogTree=self.dialogTrees["karuDialog"])
-        self.frozenKaru = FrozenKaru(pos=(500,300), name="Frozen Karu", image=fountainIceImg, examine="It's Karu frozen solid in the fountain.", dialogTree=self.dialogTrees["frozenKaruDialog"])
+        self.karu = NPC(pos=(500,300), name="Karu", image=fountainOnImg, examine="Karu is swimming in the fountain.", dialogTree=self.dialogTrees["karuDialog"])
+        self.frozenKaru = FrozenKaru(pos=(500,300), name="Frozen Karu", image=fountainIceImg, examine="Karu is frozen solid in the fountain.", dialogTree=self.dialogTrees["frozenKaruDialog"])
         self.fireKaru = NPC(pos=(500,300), name="Flaming Karu", image=fountainFireImg, examine="Damn, Karu's looking hot.", dialogTree=self.dialogTrees["fireKaruDialog"])
         self.chickenKaru = ScorchedFountain(pos=(500,300), invItem=self.chicken, name="Cooked Karu", image=fountainChickenImg, examine="I may have been slightly too late turning on the sprinklers.")
         self.scorchedFountain = Selectable(pos=(500,300), name="Scorched Fountain", image=fountainScorchImg, examine="It's a fountain, slightly scorched.")
-        self.thermostat = NPC(pos=(180,380), name="Thermostat", image=pygame.image.load("graphics/thermostat.png"), examine="Joms Sr doesn't let me mess with our thermostat at home not since the incident.", dialogTree=self.dialogTrees["thermostatDialog"])
+        self.thermostat = NPC(pos=(180,380), name="Thermostat", image=pygame.image.load("graphics/thermostat.png"), examine="Joms Sr doesn't let me mess with the thermostat at home. Not since... The Incident...", dialogTree=self.dialogTrees["thermostatDialog"])
         self.normChan = NPC(pos=(430,130), name="Norm-chan", image=pygame.image.load("graphics/normChan.png"), examine="The very handsome owner of this fine establishment.", dialogTree=self.dialogTrees["normDialog"])
         bagChanImage = pygame.transform.scale(pygame.image.load("graphics/Jelly_Normal.png"), (100,200))
         bagChanStuffedImage = pygame.transform.scale(pygame.image.load("graphics/Jelly_Stuffed.png"), (100,200))
-        self.bagChan = Jelly(pos=(440,375), name="Jelly", image=bagChanImage, examine="It's world famous streamer/entertainer Jelly", dialogTree=self.dialogTrees["bagChanDialog"])
+        self.bagChan = Jelly(pos=(440,375), name="Jelly", image=bagChanImage, examine="It's world famous streamer/entertainer, Jelly.", dialogTree=self.dialogTrees["bagChanDialog"])
         self.bagChanFull = NPC(pos=(440,375), name="Stuffed Jelly", image=bagChanStuffedImage, examine="Jelly's insatiable trash-lust has been satisfied... for now...", dialogTree=self.dialogTrees["bagChanStuffedDialog"])
         falzarImage = pygame.transform.scale2x(pygame.image.load("graphics/Bouncer_Falzar.png"))
         self.falzar = Falzar((500,0), name="Crocodile with Style", image=falzarImage, examine="A hostile crocodile with style is blocking the entrance.", dialogTree=self.dialogTrees["falzarDialog"])
-        self.botseph = Botseph((300,110), name="Botseph", image=pygame.image.load("graphics/botseph.png"), examine="The bartender of the very originally named \"Bar\"", dialogTree=self.dialogTrees["botsephDialog"])
-        self.beacoi = Beacoi((600,400), name="Beacoi Ofsnoe", image=pygame.image.load("graphics/Knife_Beacoi.png"), examine="The fearsome Beacoi Ofsnoe with his razer sharp knife-like talons.", dialogTree=self.dialogTrees["beacoiDialog"])
+        self.botseph = Botseph((300,110), name="Botseph", image=pygame.image.load("graphics/botseph.png"), examine="The bartender of the very originally named \"Bar\".", dialogTree=self.dialogTrees["botsephDialog"])
+        self.beacoi = Beacoi((600,400), name="Beacoi Osfnoe", image=pygame.image.load("graphics/Knife_Beacoi.png"), examine="The fearsome Beacoi Osfnoe with his razer sharp knife-like talons.", dialogTree=self.dialogTrees["beacoiDialog"])
 
         # Rooms
         self.titleScreen = Room(name="title", bg=pygame.image.load("graphics/titleScreen.png"), selectables=[], exits=[])
@@ -942,7 +951,7 @@ def scoreQuiz(state, assets):
     if state.examScore == 5:
         state.currInventory.append(assets.trainTicket)
         # This is gross but it's way too late for me to make it better
-        assets.dialogTrees["quizDialog"]["results"]["text"] = "Congratulations, you passed the exam. Now get out of here. (You recieved a Train Ticket!)"
+        assets.dialogTrees["quizDialog"]["results"]["text"] = "Congratulations, you passed the exam. Now get out of here. (You received a Train Ticket!)"
         assets.dialogTrees["quizDialog"]["start"]["text"] = "Go on, enjoy the school trip."
         assets.dialogTrees["quizDialog"]["start"]["options"] = {"1": "Leave"}
         assets.dialogTrees["quizDialog"]["start"]["next"] = {"1": "leave"}
@@ -968,7 +977,7 @@ def takePopcorn(state, assets):
     if assets.popcorn in state.currInventory and assets.bagChan in state.currRoom.selectables:
         state.currInventory.remove(assets.popcorn)
         assets.omnom.play()
-        state.dialog = "Like a feral beast, Jelly's insatiable trash-lust activates and is unable to stop themselves from devouring your popcorn, bag and all."
+        state.dialog = "Like a feral beast, Jelly pounces, consumed by trashlust. They're unable to stop themselves from devouring your popcorn, bucket and all."
         bagChanDialog["start"]["options"]["mine"] = "Hey, that was mine!"
         bagChanDialog["start"]["options"]["eat"] = "How did you even eat that?"
     return (state, assets)
@@ -1062,6 +1071,8 @@ def credits(state, assets):
         ("Executive Producer", "PubSub"),
         ("Lead Programmer", "PubSub"),
         ("Lead Writer", "PubSub"),
+        ("Junior Writer", "Jelly"),
+        ("Lead Editor", "Jelly"),
         ("Storyboarding", "PubSub"),
         ("", "Jelly"),
         ("", "404SamNotFound"),
